@@ -96,10 +96,10 @@ export interface HledgerDashboardSettings {
 
 export const DEFAULT_SETTINGS: HledgerDashboardSettings = {
   hledgerPath: 'hledger',
-  journalFile: 'finances/finances.journal',
+  journalFile: '',
   recentTxnCount: 20,
   defaultPeriod: 'month',
-  targetCurrency: 'EGP',
+  targetCurrency: '',
   uncategorizedAccount: 'equity:uncategorized',
   filterShortcuts: [],
 };
