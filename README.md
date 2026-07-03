@@ -28,9 +28,11 @@ Full financial dashboard for [hledger](https://hledger.org) journals, inside Obs
 3. Enable the plugin in **Settings → Community plugins**.
 4. Open **Settings → hledger Dashboard** and configure the journal file path.
 
-### BRAT
+### BRAT (optional — early access / pre-release)
 
-1. Install the [BRAT](https://obsidian.md/plugins?id=obsidian42-brat) plugin.
+Use this if the plugin hasn't yet been approved for the community store, or if you want to try the latest unreleased changes between official releases. Requires the [BRAT](https://obsidian.md/plugins?id=obsidian42-brat) plugin.
+
+1. Install BRAT via **Settings → Community plugins → Browse**.
 2. Add the repository `cousine/hledger-dashboard` via **Add a beta plugin**.
 3. Enable **hledger Dashboard** in Community plugins.
 
