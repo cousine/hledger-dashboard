@@ -38,13 +38,12 @@ Use this if the plugin hasn't yet been approved for the community store, or if y
 
 ## Quick Start
 
-1. Enable the plugin and click the dollar-sign icon in the ribbon bar (or run `Open hledger Dashboard`).
-2. If this is your first time, a setup card appears. Click **Open Settings**.
-3. Configure the **Journal file** path (relative to your vault root, e.g. `finances/main.journal`).
-4. Set a **Target currency** for converted totals (e.g. `USD`).
-5. Click the **↻ Refresh** button.
-
-Want to try before configuring your own journal? Set the journal file to `sample.journal` (included in the plugin folder). This sample dataset uses USD + EUR with ~18 months of realistic transactions, budgets, and market prices.
+1. Enable the plugin and click the **$** icon in the ribbon bar (or run `Open hledger Dashboard`).
+2. A setup card with step-by-step guidance appears:
+   - Click **Open Settings** to configure your **Journal file** path and **Target currency**.
+   - Click **Refresh** to load your dashboard once configured.
+3. Just exploring? Click **Load sample journal** on the setup card — the plugin writes a sample dataset
+   (USD + EUR, ~2.5 years) to your vault root and loads the dashboard immediately.
 
 ## Dashboard Tabs
 
@@ -89,6 +88,7 @@ Want to try before configuring your own journal? Set the journal file to `sample
 | hledger binary path   | Path to the hledger executable (default: `hledger` via PATH). Click **Test** to verify          |
 | Journal file          | Path to your `.journal` file, relative to vault root. Click **Browse** to pick from vault files |
 | Target currency       | Default currency for converted totals (e.g. `USD`, `EUR`). Used for `hledger -X`                |
+| Known currencies     | Comma-separated currency symbols treated as cash accounts (not stock) in the Balance Sheet (default: `USD, $, EUR, GBP`) |
 | Uncategorized account | Account pattern for uncategorized transactions (e.g. `equity:uncategorized`)                    |
 | Page size             | Number of rows per page in tables                                                               |
 | Default period        | Default dashboard view on open (Month / Quarter / YTD)                                          |
