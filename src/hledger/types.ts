@@ -89,6 +89,7 @@ export interface HledgerDashboardSettings {
   recentTxnCount: number;
   defaultPeriod: 'month' | 'quarter' | 'ytd';
   targetCurrency: string;
+  knownCurrencies: string[];
   uncategorizedAccount: string;
   filterShortcuts: FilterShortcut[];
   uiState?: DashboardUIState;
@@ -99,7 +100,8 @@ export const DEFAULT_SETTINGS: HledgerDashboardSettings = {
   journalFile: '',
   recentTxnCount: 20,
   defaultPeriod: 'month',
-  targetCurrency: '',
+  targetCurrency: 'USD',
+  knownCurrencies: ['USD', '$', 'EUR', 'GBP'],
   uncategorizedAccount: 'equity:uncategorized',
   filterShortcuts: [],
 };

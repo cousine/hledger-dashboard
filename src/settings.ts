@@ -76,7 +76,7 @@ export class HledgerDashboardSettingTab extends PluginSettingTab {
       .setDesc('Path to your hledger journal file, relative to vault root.')
       .addText((text) =>
         text
-          .setPlaceholder('finances/finances.journal')
+          .setPlaceholder('ledger.journal')
           .setValue(this.plugin.settings.journalFile)
           .onChange(async (val) => {
             this.plugin.settings.journalFile = val;
@@ -95,13 +95,26 @@ export class HledgerDashboardSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Target currency')
-      .setDesc('Default currency for conversion (e.g. EGP, USD). Used when displaying totals.')
+      .setDesc('Default currency for conversion (e.g. USD, EUR). Used when displaying totals.')
       .addText((text) =>
         text
-          .setPlaceholder('EGP')
+          .setPlaceholder('USD')
           .setValue(this.plugin.settings.targetCurrency)
           .onChange(async (val) => {
-            this.plugin.settings.targetCurrency = val || 'EGP';
+            this.plugin.settings.targetCurrency = val || 'USD';
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName('Known currencies')
+      .setDesc('Comma-separated currency symbols used to distinguish cash accounts from investment/stock accounts in the Balance Sheet.')
+      .addText((text) =>
+        text
+          .setPlaceholder('USD, $, EUR, GBP')
+          .setValue(this.plugin.settings.knownCurrencies.join(', '))
+          .onChange(async (val) => {
+            this.plugin.settings.knownCurrencies = val.split(',').map(s => s.trim()).filter(s => s.length > 0);
             await this.plugin.saveSettings();
           })
       );
@@ -185,7 +198,7 @@ export class HledgerDashboardSettingTab extends PluginSettingTab {
 
       new Setting(section)
         .setName('Currencies')
-        .setDesc('Comma-separated currency symbols (e.g. EGP, $)')
+        .setDesc('Comma-separated currency symbols (e.g. USD, EUR)')
         .addText((text) =>
           text
             .setValue(sc.currencies.join(', '))

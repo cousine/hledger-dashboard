@@ -233,7 +233,7 @@ export async function renderBalanceSheet(
     });
 
     // Hybrid: native for currency entries, -X converted for stock accounts
-    const knownCurrencies = new Set(['EGP', 'USD', '$', 'EUR', 'GBP']);
+    const knownCurrencies = new Set(ctx.settings.knownCurrencies);
     const stockAccounts = new Set<string>();
     for (const e of filteredNative) {
       if (e.account.startsWith('assets:') && e.account !== 'assets' && !knownCurrencies.has(e.commodity)) {

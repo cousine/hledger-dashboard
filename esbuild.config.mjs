@@ -24,6 +24,7 @@ const context = await esbuild.context({
   sourcemap: prod ? false : "inline",
   treeShaking: true,
   outfile: "main.js",
+  loader: { '.journal': 'text' },
 });
 
 if (prod) {

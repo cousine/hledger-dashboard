@@ -15,6 +15,7 @@ import { renderActivity } from './tabs/activity';
 import { renderBudget } from './tabs/budget';
 import { renderTransactions } from './tabs/transactions';
 import { renderTransfers } from './tabs/transfers';
+import { SAMPLE_JOURNAL } from './hledger/sampleJournal';
 
 export const VIEW_TYPE_HLEDGER_DASHBOARD = 'hledger-dashboard-view';
 
@@ -103,6 +104,10 @@ export class HledgerDashboardView extends ItemView {
     if (!this.plugin.settings.journalFile) {
       return { ok: false, reason: 'Journal file not configured. Open Settings to set the path to your .journal file.' };
     }
+    const exists = await this.app.vault.adapter.exists(this.plugin.settings.journalFile);
+    if (!exists) {
+      return { ok: false, reason: `Journal file not found at "${this.plugin.settings.journalFile}". Place the file at your vault root or update the path in Settings.` };
+    }
     try {
       await this.client.testConnection(this.plugin.settings.hledgerPath);
       return { ok: true };
@@ -140,7 +145,26 @@ export class HledgerDashboardView extends ItemView {
     step2.appendText('  Set the journal file path and target currency.');
 
     const step3 = steps.createEl('li');
-    step3.appendText('Click the Refresh button (↻) to load your dashboard.');
+    const refreshBtn = step3.createEl('button', { text: 'Refresh', cls: 'mod-cta' });
+    refreshBtn.addEventListener('click', () => {
+      this.refresh();
+    });
+    step3.appendText('  Load your dashboard.');
+
+    card.createEl('hr');
+    const sampleSection = card.createDiv({ cls: 'hldg-onboarding-sample' });
+    sampleSection.createEl('p', { text: 'Just exploring? Load the bundled sample journal to see the dashboard in action.' });
+    const sampleBtn = sampleSection.createEl('button', { text: 'Load sample journal', cls: 'mod-cta' });
+    sampleBtn.addEventListener('click', async () => {
+      try {
+        await this.app.vault.adapter.write('sample.journal', SAMPLE_JOURNAL);
+        this.plugin.settings.journalFile = 'sample.journal';
+        await this.plugin.saveSettings();
+        this.refresh();
+      } catch (err) {
+        sampleSection.createEl('p', { text: `Could not load sample: ${err instanceof Error ? err.message : String(err)}`, cls: 'hldg-onboarding-detail' });
+      }
+    });
 
     if (reason) {
       card.createEl('hr');

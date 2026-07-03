@@ -20,7 +20,7 @@ function chipClass(pattern: string): string {
 
 function currencyChipClass(currency: string): string {
   if (currency === '$' || currency === 'USD') return 'hldg-filter-chip-currency-usd';
-  if (currency === 'EGP') return 'hldg-filter-chip-currency-egp';
+  if (currency === 'EUR') return 'hldg-filter-chip-currency-eur';
   return 'hldg-filter-chip-currency-other';
 }
 
