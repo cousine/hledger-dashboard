@@ -1,0 +1,357 @@
+; sample.journal — sample data for hledger Dashboard
+; Use with Settings → Journal file → sample.journal
+;
+; USD primary + EUR secondary, with conversion prices.
+; Includes budget periodic transactions for the Budget tab.
+; Includes equity:transfer postings for the Transfers tab.
+
+commodity $1,000.00
+commodity €1,000.00
+
+; Market prices for USD/EUR conversion
+P 2024-01-01 € $1.10
+P 2024-04-01 € $1.08
+P 2024-07-01 € $1.12
+P 2024-10-01 € $1.09
+P 2025-01-01 € $1.15
+
+; Opening balances
+2024-01-01 * Opening balances
+    assets:bank:checking              $5,000.00
+    assets:bank:savings              $10,000.00
+    assets:investment                    €5,000.00
+    liabilities:creditcard              $-500.00
+    equity:opening-balances
+
+; ============================================================
+; Monthly budget targets (used by Budget tab)
+; ============================================================
+~ monthly from 2024-01-01
+    (expenses:essentials:housing)           $1,500.00
+    (expenses:essentials:groceries)           $400.00
+    (expenses:essentials:utilities)           $200.00
+    (expenses:essentials:transport)           $100.00
+    (expenses:leisure:dining)                 $350.00
+    (expenses:leisure:entertainment)          $100.00
+    (expenses:leisure:travel)                 $200.00
+
+; ============================================================
+; 2024 transactions
+; ============================================================
+
+2024-01-03 * Rent
+    expenses:essentials:housing             $1,500.00
+    assets:bank:checking                   $-1,500.00
+
+2024-01-05 * Supermarket
+    expenses:essentials:groceries             $380.00
+    assets:bank:checking                     $-380.00
+
+2024-01-08 * Electric & water
+    expenses:essentials:utilities             $175.00
+    assets:bank:checking                     $-175.00
+
+2024-01-12 * Gas
+    expenses:essentials:transport              $60.00
+    assets:bank:checking                      $-60.00
+
+2024-01-15 * Salary
+    income:salary                           $-5,000.00
+    assets:bank:checking                     $5,000.00
+
+2024-01-18 * Restaurant
+    expenses:leisure:dining                    $95.00
+    liabilities:creditcard                    $-95.00
+
+2024-01-22 * Netflix subscription
+    expenses:leisure:entertainment             $15.00
+    liabilities:creditcard                    $-15.00
+
+2024-01-27 * Transfer to savings
+    assets:bank:savings                       $500.00
+    assets:bank:checking                     $-500.00
+    equity:transfer
+
+2024-01-30 * Monthly investment
+    assets:investment                          €500.00
+    assets:bank:checking                      $-550.00
+    equity:transfer
+
+2024-01-31 * Credit card payment
+    liabilities:creditcard                    $110.00
+    assets:bank:checking                     $-110.00
+
+2024-02-02 * Rent
+    expenses:essentials:housing             $1,500.00
+    assets:bank:checking                   $-1,500.00
+
+2024-02-06 * Supermarket
+    expenses:essentials:groceries             $420.00
+    assets:bank:checking                     $-420.00
+
+2024-02-09 * Electric & water
+    expenses:essentials:utilities             $190.00
+    assets:bank:checking                     $-190.00
+
+2024-02-13 * Gas
+    expenses:essentials:transport              $55.00
+    assets:bank:checking                      $-55.00
+
+2024-02-15 * Salary
+    income:salary                           $-5,000.00
+    assets:bank:checking                     $5,000.00
+
+2024-02-20 * Dinner with friends
+    expenses:leisure:dining                   $120.00
+    liabilities:creditcard                    $-120.00
+
+2024-02-25 * Concert tickets
+    expenses:leisure:entertainment             $72.00
+    liabilities:creditcard                    $-72.00
+
+2024-02-27 * Transfer to savings
+    assets:bank:savings                       $500.00
+    assets:bank:checking                     $-500.00
+    equity:transfer
+
+2024-02-28 * Monthly investment
+    assets:investment                          €500.00
+    assets:bank:checking                      $-540.00
+    equity:transfer
+
+2024-02-29 * Credit card payment
+    liabilities:creditcard                    $207.00
+    assets:bank:checking                     $-207.00
+
+2024-03-01 * Rent
+    expenses:essentials:housing             $1,500.00
+    assets:bank:checking                   $-1,500.00
+
+2024-03-05 * Supermarket
+    expenses:essentials:groceries             $390.00
+    assets:bank:checking                     $-390.00
+
+2024-03-08 * Electric & water
+    expenses:essentials:utilities             $165.00
+    assets:bank:checking                     $-165.00
+
+2024-03-12 * Gas
+    expenses:essentials:transport              $50.00
+    assets:bank:checking                      $-50.00
+
+2024-03-15 * Salary
+    income:salary                           $-5,000.00
+    assets:bank:checking                     $5,000.00
+
+2024-03-18 * Weekend getaway (hotel)
+    expenses:leisure:travel                  $850.00
+    liabilities:creditcard                   $-850.00
+
+2024-03-20 * Restaurant
+    expenses:leisure:dining                    $65.00
+    liabilities:creditcard                    $-65.00
+
+2024-03-28 * Transfer to savings
+    assets:bank:savings                       $500.00
+    assets:bank:checking                     $-500.00
+    equity:transfer
+
+2024-03-29 * Monthly investment
+    assets:investment                          €500.00
+    assets:bank:checking                      $-560.00
+    equity:transfer
+
+2024-03-31 * Credit card payment
+    liabilities:creditcard                    $142.00
+    assets:bank:checking                     $-142.00
+
+; Q2 — abbreviated monthly pattern
+2024-04-05 * Groceries & supplies
+    expenses:essentials:groceries             $410.00
+    expenses:essentials:utilities             $185.00
+    assets:bank:checking                     $-595.00
+
+2024-04-15 * Salary
+    income:salary                           $-5,000.00
+    assets:bank:checking                     $5,000.00
+
+2024-04-18 * Dining & entertainment
+    expenses:leisure:dining                   $130.00
+    expenses:leisure:entertainment             $22.00
+    liabilities:creditcard                    $-152.00
+
+2024-04-28 * Monthly investment & savings
+    assets:investment                          €500.00
+    assets:bank:savings                       $500.00
+    assets:bank:checking                    $-1,040.00
+    equity:transfer
+
+2024-05-03 * Rent
+    expenses:essentials:housing             $1,500.00
+    assets:bank:checking                   $-1,500.00
+
+2024-05-15 * Salary
+    income:salary                           $-5,000.00
+    assets:bank:checking                     $5,000.00
+
+2024-05-20 * Weekend trip
+    expenses:leisure:travel                  $320.00
+    expenses:leisure:dining                    $95.00
+    liabilities:creditcard                    $-415.00
+
+2024-05-28 * Monthly investment & savings
+    assets:investment                          €500.00
+    assets:bank:savings                       $500.00
+    assets:bank:checking                    $-1,040.00
+    equity:transfer
+
+2024-06-03 * Rent
+    expenses:essentials:housing             $1,500.00
+    assets:bank:checking                   $-1,500.00
+
+2024-06-15 * Salary
+    income:salary                           $-5,000.00
+    assets:bank:checking                     $5,000.00
+
+2024-06-18 * Summer holiday booking
+    expenses:leisure:travel                €2,500.00
+    liabilities:creditcard                 $-2,750.00
+
+2024-06-28 * Monthly investment & savings
+    assets:investment                          €500.00
+    assets:bank:savings                       $500.00
+    assets:bank:checking                    $-1,040.00
+    equity:transfer
+
+; Q3 — sparse
+2024-07-01 * Rent
+    expenses:essentials:housing             $1,500.00
+    assets:bank:checking                   $-1,500.00
+
+2024-07-15 * Salary
+    income:salary                           $-5,000.00
+    assets:bank:checking                     $5,000.00
+
+2024-08-01 * Rent
+    expenses:essentials:housing             $1,500.00
+    expenses:essentials:utilities             $200.00
+    assets:bank:checking                   $-1,700.00
+
+2024-08-15 * Salary
+    income:salary                           $-5,000.00
+    assets:bank:checking                     $5,000.00
+
+2024-09-01 * Rent
+    expenses:essentials:housing             $1,500.00
+    assets:bank:checking                   $-1,500.00
+
+2024-09-05 * Weekend trip
+    expenses:leisure:travel                  $650.00
+    expenses:leisure:dining                   $110.00
+    liabilities:creditcard                   $-760.00
+
+2024-09-15 * Salary
+    income:salary                           $-5,000.00
+    assets:bank:checking                     $5,000.00
+
+2024-09-28 * Transfer to savings
+    assets:bank:savings                     $1,500.00
+    assets:bank:checking                   $-1,500.00
+    equity:transfer
+
+; Q4 — sparse
+2024-10-01 * Rent
+    expenses:essentials:housing             $1,500.00
+    expenses:essentials:utilities             $195.00
+    assets:bank:checking                   $-1,695.00
+
+2024-10-15 * Salary
+    income:salary                           $-5,000.00
+    assets:bank:checking                     $5,000.00
+
+2024-10-22 * Annual investment contribution
+    assets:investment                        €2,000.00
+    assets:bank:checking                    $-2,200.00
+    equity:transfer
+
+2024-11-01 * Rent
+    expenses:essentials:housing             $1,500.00
+    assets:bank:checking                   $-1,500.00
+
+2024-11-15 * Salary
+    income:salary                           $-5,000.00
+    assets:bank:checking                     $5,000.00
+
+2024-12-01 * Rent
+    expenses:essentials:housing             $1,500.00
+    assets:bank:checking                   $-1,500.00
+
+2024-12-05 * Holiday gifts
+    expenses:leisure:entertainment           $320.00
+    expenses:leisure:dining                   $150.00
+    liabilities:creditcard                   $-470.00
+
+2024-12-15 * Salary
+    income:salary                           $-5,000.00
+    assets:bank:checking                     $5,000.00
+
+; ============================================================
+; 2025 — a few transactions per quarter
+; ============================================================
+2025-01-02 * Rent
+    expenses:essentials:housing             $1,550.00
+    assets:bank:checking                   $-1,550.00
+
+2025-01-15 * Salary
+    income:salary                           $-5,200.00
+    assets:bank:checking                     $5,200.00
+
+2025-02-01 * Rent
+    expenses:essentials:housing             $1,550.00
+    assets:bank:checking                   $-1,550.00
+
+2025-02-15 * Salary
+    income:salary                           $-5,200.00
+    assets:bank:checking                     $5,200.00
+
+2025-02-20 * Weekend in Paris
+    expenses:leisure:travel                  €1,800.00
+    liabilities:creditcard                  $-2,070.00
+
+2025-03-01 * Rent
+    expenses:essentials:housing             $1,550.00
+    assets:bank:checking                   $-1,550.00
+
+2025-03-15 * Salary
+    income:salary                           $-5,200.00
+    assets:bank:checking                     $5,200.00
+
+2025-04-01 * Rent
+    expenses:essentials:housing             $1,550.00
+    expenses:essentials:utilities             $210.00
+    assets:bank:checking                   $-1,760.00
+
+2025-04-15 * Salary
+    income:salary                           $-5,200.00
+    assets:bank:checking                     $5,200.00
+
+2025-05-01 * Rent
+    expenses:essentials:housing             $1,550.00
+    assets:bank:checking                   $-1,550.00
+
+2025-05-15 * Salary
+    income:salary                           $-5,200.00
+    assets:bank:checking                     $5,200.00
+
+2025-05-28 * Transfer to savings
+    assets:bank:savings                     $2,000.00
+    assets:bank:checking                   $-2,000.00
+    equity:transfer
+
+2025-06-01 * Rent
+    expenses:essentials:housing             $1,550.00
+    assets:bank:checking                   $-1,550.00
+
+2025-06-15 * Salary
+    income:salary                           $-5,200.00
+    assets:bank:checking                     $5,200.00
