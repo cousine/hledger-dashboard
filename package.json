@@ -1,0 +1,23 @@
+{
+  "name": "hledger-dashboard",
+  "version": "0.0.1",
+  "description": "Obsidian plugin: financial dashboard for hledger journals",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "node esbuild.config.mjs production"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "builtin-modules": "^3.3.0",
+    "chart.js": "^4.4.0",
+    "chartjs-chart-treemap": "^2.0.0",
+    "esbuild": "^0.19.0",
+    "obsidian": "^1.4.0",
+    "tslib": "^2.6.0",
+    "typescript": "^5.3.0"
+  }
+}

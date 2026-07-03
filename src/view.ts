@@ -1,0 +1,329 @@
+import { ItemView, WorkspaceLeaf } from 'obsidian';
+import HledgerDashboardPlugin from './main';
+import { DashboardContext, DashboardPeriod, TabFilterState, defaultTabFilter, FilterShortcut, DashboardUIState, DEFAULT_UI_STATE } from './hledger/types';
+import { HledgerClient } from './hledger/client';
+import { QueryCache } from './cache';
+import { destroyAllCharts } from './ui/chart';
+import { buildToolbar, buildPresetPeriod, getDefaultDateValue } from './ui/toolbar';
+import { renderTabBar, TabItem } from './ui/tabs';
+import { renderFilterBar, FilterBarCallbacks } from './ui/filterBar';
+import { Dropdown } from './ui/dropdown';
+import { buildAccountTreeContent } from './ui/accountTreePicker';
+import { buildCurrencyContent } from './ui/currencyPicker';
+import { renderBalanceSheet } from './tabs/balanceSheet';
+import { renderActivity } from './tabs/activity';
+import { renderBudget } from './tabs/budget';
+import { renderTransactions } from './tabs/transactions';
+import { renderTransfers } from './tabs/transfers';
+
+export const VIEW_TYPE_HLEDGER_DASHBOARD = 'hledger-dashboard-view';
+
+const TAB_DEFS: TabItem[] = [
+  { id: 'balance-sheet', label: 'Balance Sheet' },
+  { id: 'activity', label: 'Activity' },
+  { id: 'budget', label: 'Budget' },
+  { id: 'transactions', label: 'Transactions' },
+  { id: 'transfers', label: 'Transfers' },
+];
+
+export class HledgerDashboardView extends ItemView {
+  private plugin: HledgerDashboardPlugin;
+  private client: HledgerClient;
+  private cache: QueryCache;
+  private tabBarContainer!: HTMLElement;
+  private toolbarContainer!: HTMLElement;
+  private filterBarContainer!: HTMLElement;
+  private contentContainer!: HTMLElement;
+  private errorContainer!: HTMLElement;
+  private loadingContainer!: HTMLElement;
+  private refreshBtn!: HTMLButtonElement;
+  private errorEl!: HTMLElement;
+  private currentPeriod!: DashboardPeriod;
+  private activeTabId = 'balance-sheet';
+  private filterState: TabFilterState = defaultTabFilter();
+  private commodities: string[] = [];
+  private currentDropdown: Dropdown | null = null;
+  private availableYears: number[] = [];
+  private uiState: DashboardUIState;
+
+  constructor(leaf: WorkspaceLeaf, plugin: HledgerDashboardPlugin) {
+    super(leaf);
+    this.plugin = plugin;
+    const vaultRoot = (this.app.vault.adapter as any).getBasePath();
+    this.client = new HledgerClient(vaultRoot);
+    this.cache = new QueryCache();
+
+    const saved = { ...DEFAULT_UI_STATE, ...plugin.settings.uiState };
+    this.uiState = saved;
+    this.activeTabId = saved.activeTab;
+
+    const today = getDefaultDateValue();
+    if (saved.periodPreset && saved.periodPreset !== 'custom') {
+      this.currentPeriod = buildPresetPeriod(saved.periodPreset as DashboardPeriod['preset'], today);
+    } else if (saved.periodPreset === 'custom' && saved.periodStartDate && saved.periodEndDate) {
+      this.currentPeriod = {
+        startDate: saved.periodStartDate,
+        endDate: saved.periodEndDate,
+        preset: 'custom',
+        label: `${saved.periodStartDate} to ${saved.periodEndDate}`,
+        hledgerPeriod: `${saved.periodStartDate}..${saved.periodEndDate}`,
+      };
+    } else {
+      this.currentPeriod = buildPresetPeriod(plugin.settings.defaultPeriod, today);
+    }
+
+    this.filterState = {
+      accountPatterns: saved.filterAccountPatterns,
+      currencies: saved.filterCurrencies,
+    };
+  }
+
+  getViewType(): string { return VIEW_TYPE_HLEDGER_DASHBOARD; }
+  getDisplayText(): string { return 'hledger Dashboard'; }
+  getIcon(): string { return 'dollar-sign'; }
+
+  async onOpen(): Promise<void> {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.addClass('hldg-view');
+
+    const headerEl = contentEl.createDiv({ cls: 'hldg-header' });
+    this.tabBarContainer = headerEl.createDiv();
+    this.toolbarContainer = headerEl.createDiv();
+    this.filterBarContainer = headerEl.createDiv();
+    this.loadingContainer = contentEl.createDiv({ cls: 'hldg-loading' });
+    this.errorContainer = contentEl.createDiv();
+    this.contentContainer = contentEl.createDiv({ cls: 'hldg-content' });
+
+    this.buildTabBar();
+    await this.fetchCommodities();
+    await this.fetchAvailableYears();
+    this.buildToolbar();
+    this.buildFilterBar();
+    await this.refresh();
+  }
+
+  private async fetchCommodities(): Promise<void> {
+    try {
+      this.commodities = await this.client.getCommodities(
+        this.plugin.settings.hledgerPath,
+        this.plugin.settings.journalFile
+      );
+    } catch {
+      this.commodities = [];
+    }
+  }
+
+  private async fetchAvailableYears(): Promise<void> {
+    try {
+      this.availableYears = await this.client.getAvailableYears(
+        this.plugin.settings.hledgerPath,
+        this.plugin.settings.journalFile
+      );
+    } catch {
+      this.availableYears = [];
+    }
+  }
+
+  private buildToolbar(): void {
+    const result = buildToolbar(
+      this.toolbarContainer,
+      { period: this.currentPeriod, availableYears: this.availableYears, selectedYear: this.uiState.selectedYear },
+      {
+        onPeriodChange: async (p: DashboardPeriod) => {
+          this.currentPeriod = p;
+          this.cache.setPeriod(p.hledgerPeriod);
+          this.plugin.saveUIState({
+            periodPreset: p.preset,
+            periodStartDate: p.startDate,
+            periodEndDate: p.endDate,
+          });
+          await this.renderActiveTab();
+        },
+        onRefresh: async () => {
+          this.cache.invalidate();
+          await this.renderActiveTab();
+        },
+        onYearChange: (year: string) => {
+          this.uiState.selectedYear = year;
+          if (!year) {
+            const today = getDefaultDateValue();
+            this.currentPeriod = buildPresetPeriod(this.plugin.settings.defaultPeriod, today);
+          } else {
+            this.currentPeriod = {
+              startDate: `${year}-01-01`,
+              endDate: `${year}-12-31`,
+              preset: 'custom',
+              label: year,
+              hledgerPeriod: `${year}-01-01..${year}-12-31`,
+            };
+          }
+          this.plugin.saveUIState({
+            selectedYear: year,
+            periodPreset: this.currentPeriod.preset,
+            periodStartDate: this.currentPeriod.startDate,
+            periodEndDate: this.currentPeriod.endDate,
+          });
+          this.renderActiveTab();
+        },
+      }
+    );
+    this.refreshBtn = result.refreshBtn;
+    this.errorEl = result.errorEl;
+  }
+
+  private buildTabBar(): void {
+    this.tabBarContainer.empty();
+    renderTabBar(this.tabBarContainer, TAB_DEFS, this.activeTabId, (id: string) => {
+      this.activeTabId = id;
+      this.plugin.saveUIState({ activeTab: id });
+      this.buildFilterBar();
+      this.renderActiveTab();
+    });
+  }
+
+  private buildFilterBar(): void {
+    renderFilterBar(this.filterBarContainer, this.filterState, this.plugin.settings.filterShortcuts || [], this.getFilterCallbacks());
+  }
+
+  private getFilterCallbacks(): FilterBarCallbacks {
+    return {
+      onOpenAccountPicker: (anchorEl) => this.openAccountPicker(anchorEl),
+      onRemoveAccountPattern: (pat) => {
+        this.filterState.accountPatterns = this.filterState.accountPatterns.filter(p => p !== pat);
+        this.plugin.saveUIState({ filterAccountPatterns: this.filterState.accountPatterns });
+        this.buildFilterBar(); this.renderActiveTab();
+      },
+      onOpenCurrencyPicker: (anchorEl) => this.openCurrencyPicker(anchorEl),
+      onRemoveCurrency: (c) => {
+        this.filterState.currencies = this.filterState.currencies.filter(x => x !== c);
+        this.plugin.saveUIState({ filterCurrencies: this.filterState.currencies });
+        this.buildFilterBar(); this.renderActiveTab();
+      },
+      onClearFilters: () => {
+        this.filterState = defaultTabFilter();
+        this.plugin.saveUIState({ filterAccountPatterns: [], filterCurrencies: [] });
+        this.buildFilterBar(); this.renderActiveTab();
+      },
+      onApplyShortcut: (sc) => {
+        this.filterState = { accountPatterns: [...sc.accountPatterns], currencies: [...sc.currencies] };
+        this.plugin.saveUIState({ filterAccountPatterns: this.filterState.accountPatterns, filterCurrencies: this.filterState.currencies });
+        this.buildFilterBar(); this.renderActiveTab();
+      },
+    };
+  }
+
+  private async openAccountPicker(anchorEl: HTMLElement): Promise<void> {
+    let treeText = '';
+    try {
+      treeText = await this.client.getAccountTree(this.plugin.settings.hledgerPath, this.plugin.settings.journalFile);
+    } catch { treeText = ''; }
+
+    const shared = { selected: new Set(this.filterState.accountPatterns) };
+    const syncFilter = () => {
+      this.filterState.accountPatterns = [...shared.selected];
+      this.plugin.saveUIState({ filterAccountPatterns: this.filterState.accountPatterns });
+      this.buildFilterBar();
+      this.renderActiveTab();
+    };
+    const dd = new Dropdown(anchorEl, (panel, _close) => {
+      buildAccountTreeContent(panel, treeText, shared.selected, syncFilter);
+    }, () => { this.currentDropdown = null; });
+    this.currentDropdown = dd;
+  }
+
+  private async openCurrencyPicker(anchorEl: HTMLElement): Promise<void> {
+    const commodities = this.commodities.length > 0 ? this.commodities : ['$', 'EGP'];
+    const shared = { selected: new Set(this.filterState.currencies) };
+    const syncFilter = () => {
+      this.filterState.currencies = [...shared.selected];
+      this.plugin.saveUIState({ filterCurrencies: this.filterState.currencies });
+      this.buildFilterBar();
+      this.renderActiveTab();
+    };
+    const dd = new Dropdown(anchorEl, (panel, _close) => {
+      buildCurrencyContent(panel, commodities, shared.selected, syncFilter);
+    }, undefined);
+  }
+
+  async refresh(): Promise<void> {
+    this.cache.invalidate();
+    await this.renderActiveTab();
+  }
+
+  private async renderActiveTab(): Promise<void> {
+    destroyAllCharts();
+    this.refreshBtn.disabled = true;
+    this.refreshBtn.setText('↻ Loading...');
+    this.errorEl.textContent = '';
+    this.errorContainer.empty();
+
+    const ctx: DashboardContext = {
+      settings: this.plugin.settings,
+      period: this.currentPeriod,
+      vaultRoot: (this.app.vault.adapter as any).getBasePath(),
+      hledgerPath: this.plugin.settings.hledgerPath,
+      commodities: this.commodities,
+      targetCurrency: this.plugin.settings.targetCurrency || 'EGP',
+      filter: this.filterState,
+      uiState: this.uiState,
+      onApplyFilter: (patterns) => {
+        this.currentDropdown?.close();
+        this.filterState.accountPatterns = patterns;
+        this.plugin.saveUIState({ filterAccountPatterns: patterns });
+        this.buildFilterBar();
+        this.renderActiveTab();
+      },
+      onNavigate: (tabId, filterPatterns) => {
+        if (filterPatterns) {
+          this.filterState.accountPatterns = filterPatterns;
+          this.plugin.saveUIState({ filterAccountPatterns: filterPatterns });
+          this.buildFilterBar();
+        }
+        this.activeTabId = tabId;
+        this.plugin.saveUIState({ activeTab: tabId });
+        this.buildTabBar();
+        this.renderActiveTab();
+      },
+      onUIStateChange: (partial) => {
+        Object.assign(this.uiState, partial);
+        this.plugin.saveUIState(partial);
+      },
+    };
+
+    const savedScroll = this.contentContainer.scrollTop;
+    try {
+      const tempDiv = document.createElement('div');
+      switch (this.activeTabId) {
+        case 'balance-sheet': await renderBalanceSheet(tempDiv, this.client, ctx); break;
+        case 'activity': await renderActivity(tempDiv, this.client, ctx); break;
+        case 'budget': await renderBudget(tempDiv, this.client, ctx); break;
+        case 'transactions': await renderTransactions(tempDiv, this.client, ctx); break;
+        case 'transfers': await renderTransfers(tempDiv, this.client, ctx); break;
+      }
+      this.contentContainer.empty();
+      this.contentContainer.appendChild(tempDiv);
+      this.contentContainer.scrollTop = Math.min(savedScroll, this.contentContainer.scrollHeight);
+    } catch (err: any) {
+      this.contentContainer.empty();
+      this.errorContainer.createDiv({ cls: 'hldg-error', text: `Failed to render tab:\n${err.message || String(err)}` });
+    }
+
+    this.refreshBtn.disabled = false;
+    this.refreshBtn.setText('↻ Refresh');
+    this.loadingContainer.style.display = 'none';
+  }
+
+  async onClose(): Promise<void> {
+    destroyAllCharts();
+    this.plugin.saveUIState({
+      activeTab: this.activeTabId,
+      filterAccountPatterns: this.filterState.accountPatterns,
+      filterCurrencies: this.filterState.currencies,
+      periodPreset: this.currentPeriod.preset,
+      periodStartDate: this.currentPeriod.startDate,
+      periodEndDate: this.currentPeriod.endDate,
+      selectedYear: this.uiState.selectedYear,
+    });
+  }
+}
