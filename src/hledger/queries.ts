@@ -146,7 +146,7 @@ export async function getBalancesWithBudget(
     result.push({
       account,
       amount: actual.quantity,
-      commodity: actual.commodity || 'EGP',
+      commodity: actual.commodity || '',
       isBudget: budget.quantity > 0,
       budgetAmount: budget.quantity,
     });

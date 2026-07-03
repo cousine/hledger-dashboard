@@ -88,8 +88,10 @@ export async function renderBalanceSheet(
   const allNative = extractFlat(stdoutNative);
 
   const priceMap = new Map<string, number>();
+  const escapedCurrency = ctx.targetCurrency.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const priceRegex = new RegExp(`^P\\s+\\S+\\s+(\\S+)\\s+${escapedCurrency}\\s+([\\d,]+\\.?\\d*)`);
   for (const line of stdoutPrices.split('\n')) {
-    const m = line.match(/^P\s+\S+\s+(\S+)\s+EGP\s+([\d,]+\.?\d*)/);
+    const m = line.match(priceRegex);
     if (m) priceMap.set(m[1], parseFloat(m[2].replace(/,/g, '')));
   }
 
