@@ -14,6 +14,11 @@ P 2024-04-01 € $1.08
 P 2024-07-01 € $1.12
 P 2024-10-01 € $1.09
 P 2025-01-01 € $1.15
+P 2025-07-01 € $1.18
+P 2025-10-01 € $1.16
+P 2026-01-01 € $1.20
+P 2026-04-01 € $1.19
+P 2026-07-01 € $1.22
 
 ; Opening balances
 2024-01-01 * Opening balances
@@ -214,7 +219,7 @@ P 2025-01-01 € $1.15
     assets:bank:checking                     $5,000.00
 
 2024-06-18 * Summer holiday booking
-    expenses:leisure:travel                €2,500.00
+    expenses:leisure:travel                €2,500.00 @@ $2,750.00
     liabilities:creditcard                 $-2,750.00
 
 2024-06-28 * Monthly investment & savings
@@ -355,3 +360,146 @@ P 2025-01-01 € $1.15
 2025-06-15 * Salary
     income:salary                           $-5,200.00
     assets:bank:checking                     $5,200.00
+
+; ============================================================
+; 2025 H2 — Jul–Dec
+; ============================================================
+
+2025-07-01 * Rent
+    expenses:essentials:housing             $1,550.00
+    assets:bank:checking                   $-1,550.00
+
+2025-07-15 * Salary
+    income:salary                           $-5,200.00
+    assets:bank:checking                     $5,200.00
+
+2025-08-01 * Rent & utilities
+    expenses:essentials:housing             $1,550.00
+    expenses:essentials:utilities             $210.00
+    assets:bank:checking                   $-1,760.00
+
+2025-08-15 * Salary
+    income:salary                           $-5,200.00
+    assets:bank:checking                     $5,200.00
+
+2025-09-01 * Rent
+    expenses:essentials:housing             $1,550.00
+    assets:bank:checking                   $-1,550.00
+
+2025-09-05 * Fall weekend trip
+    expenses:leisure:travel                  $780.00
+    expenses:leisure:dining                   $125.00
+    liabilities:creditcard                   $-905.00
+
+2025-09-15 * Salary
+    income:salary                           $-5,200.00
+    assets:bank:checking                     $5,200.00
+
+2025-09-28 * Transfer to savings
+    assets:bank:savings                     $1,500.00
+    assets:bank:checking                   $-1,500.00
+    equity:transfer
+
+2025-10-01 * Rent
+    expenses:essentials:housing             $1,550.00
+    assets:bank:checking                   $-1,550.00
+
+2025-10-15 * Salary
+    income:salary                           $-5,200.00
+    assets:bank:checking                     $5,200.00
+
+2025-10-22 * Annual investment top-up
+    assets:investment                        €2,000.00
+    assets:bank:checking                    $-2,360.00
+    equity:transfer
+
+2025-11-01 * Rent
+    expenses:essentials:housing             $1,550.00
+    assets:bank:checking                   $-1,550.00
+
+2025-11-15 * Salary
+    income:salary                           $-5,200.00
+    assets:bank:checking                     $5,200.00
+
+2025-12-01 * Rent
+    expenses:essentials:housing             $1,550.00
+    assets:bank:checking                   $-1,550.00
+
+2025-12-05 * Holiday shopping
+    expenses:leisure:entertainment           $350.00
+    expenses:leisure:dining                   $180.00
+    liabilities:creditcard                   $-530.00
+
+2025-12-15 * Salary
+    income:salary                           $-5,200.00
+    assets:bank:checking                     $5,200.00
+
+; ============================================================
+; 2026 — YTD (through early July)
+; ============================================================
+
+2026-01-02 * Rent
+    expenses:essentials:housing             $1,600.00
+    assets:bank:checking                   $-1,600.00
+
+2026-01-15 * Salary
+    income:salary                           $-5,400.00
+    assets:bank:checking                     $5,400.00
+
+2026-02-01 * Rent
+    expenses:essentials:housing             $1,600.00
+    assets:bank:checking                   $-1,600.00
+
+2026-02-15 * Salary
+    income:salary                           $-5,400.00
+    assets:bank:checking                     $5,400.00
+
+2026-02-20 * Ski trip
+    expenses:leisure:travel                €1,500.00 @@ $1,800.00
+    liabilities:creditcard                 $-1,800.00
+
+2026-03-01 * Rent
+    expenses:essentials:housing             $1,600.00
+    assets:bank:checking                   $-1,600.00
+
+2026-03-15 * Salary
+    income:salary                           $-5,400.00
+    assets:bank:checking                     $5,400.00
+
+2026-04-01 * Rent & utilities
+    expenses:essentials:housing             $1,600.00
+    expenses:essentials:utilities             $220.00
+    assets:bank:checking                   $-1,820.00
+
+2026-04-15 * Salary
+    income:salary                           $-5,400.00
+    assets:bank:checking                     $5,400.00
+
+2026-05-01 * Rent
+    expenses:essentials:housing             $1,600.00
+    assets:bank:checking                   $-1,600.00
+
+2026-05-15 * Salary
+    income:salary                           $-5,400.00
+    assets:bank:checking                     $5,400.00
+
+2026-05-28 * Transfer to savings
+    assets:bank:savings                     $2,000.00
+    assets:bank:checking                   $-2,000.00
+    equity:transfer
+
+2026-06-01 * Rent
+    expenses:essentials:housing             $1,600.00
+    assets:bank:checking                   $-1,600.00
+
+2026-06-15 * Salary
+    income:salary                           $-5,400.00
+    assets:bank:checking                     $5,400.00
+
+2026-06-20 * Summer holiday deposit
+    expenses:leisure:travel                €2,200.00 @@ $2,640.00
+    liabilities:creditcard                 $-2,640.00
+
+2026-07-01 * Rent
+    expenses:essentials:housing             $1,600.00
+    assets:bank:checking                   $-1,600.00
