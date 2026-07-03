@@ -255,7 +255,7 @@ export async function renderBalanceSheet(
             account: `${e.account}:${e.commodity}`,
             amount: e.amount * price,
             commodity: ctx.targetCurrency,
-            depth: e.depth + 1,
+            depth: (e.depth ?? 0) + 1,
           });
         } else if (!seen.has(e.account)) {
           seen.add(e.account);
