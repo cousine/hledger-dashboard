@@ -8,6 +8,20 @@ export class HledgerClient {
     this.vaultRoot = vaultRoot;
   }
 
+  private buildExecEnv(): Record<string, string | undefined> {
+    const isWin = process.platform === 'win32';
+    const sep = isWin ? ';' : ':';
+    const extraPaths = isWin
+      ? []
+      : ['/opt/homebrew/bin', '/usr/local/bin', '/opt/homebrew/sbin', '/usr/bin', '/bin'];
+    const pathKey = Object.keys(process.env).find(k => k.toLowerCase() === 'path') || 'PATH';
+    return {
+      ...process.env,
+      LC_ALL: 'C',
+      [pathKey]: [...extraPaths, process.env[pathKey]].filter(Boolean).join(sep),
+    };
+  }
+
   private async execRaw(
     binaryPath: string,
     args: string[],
@@ -16,25 +30,11 @@ export class HledgerClient {
     const journalAbs = path.resolve(this.vaultRoot, journalFile);
     const fullArgs = ['-f', journalAbs, ...args];
 
-    const env = {
-      ...process.env,
-      PATH: [
-        '/opt/homebrew/bin',
-        '/usr/local/bin',
-        '/opt/homebrew/sbin',
-        '/usr/bin',
-        '/bin',
-        process.env.PATH,
-      ]
-        .filter(Boolean)
-        .join(':'),
-    };
-
     return new Promise((resolve, reject) => {
       execFile(
         binaryPath,
         fullArgs,
-        { cwd: this.vaultRoot, env, timeout: 30000, maxBuffer: 10 * 1024 * 1024 },
+        { cwd: this.vaultRoot, env: this.buildExecEnv(), timeout: 30000, maxBuffer: 10 * 1024 * 1024 },
         (error, stdout, stderr) => {
           if (error) {
             const msg = stderr?.trim() || error.message;
@@ -56,10 +56,8 @@ export class HledgerClient {
       return await this.execRaw(binaryPath, args, journalFile);
     } catch (err) {
       if (binaryPath !== 'hledger') throw err;
-      const fallbacks = [
-        '/opt/homebrew/bin/hledger',
-        '/usr/local/bin/hledger',
-      ];
+      const isWin = process.platform === 'win32';
+      const fallbacks = isWin ? [] : ['/opt/homebrew/bin/hledger', '/usr/local/bin/hledger'];
       for (const fb of fallbacks) {
         try {
           return await this.execRaw(fb, args, journalFile);
@@ -115,21 +113,11 @@ export class HledgerClient {
   }
 
   async testConnection(binaryPath: string): Promise<string> {
-    const env = {
-      ...process.env,
-      PATH: [
-        '/opt/homebrew/bin',
-        '/usr/local/bin',
-        process.env.PATH,
-      ]
-        .filter(Boolean)
-        .join(':'),
-    };
     return new Promise((resolve, reject) => {
       execFile(
         binaryPath,
         ['--version'],
-        { env, timeout: 10000 },
+        { env: this.buildExecEnv(), timeout: 10000 },
         (error, stdout, stderr) => {
           if (error) reject(new Error(stderr?.trim() || error.message));
           else resolve(stdout.trim());
