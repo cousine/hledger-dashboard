@@ -95,12 +95,67 @@ export class HledgerDashboardView extends ItemView {
     this.errorContainer = contentEl.createDiv();
     this.contentContainer = contentEl.createDiv({ cls: 'hldg-content' });
 
+    const check = await this.isConfigured();
+    if (!check.ok) {
+      this.renderOnboarding(check.reason);
+      return;
+    }
+
     this.buildTabBar();
     await this.fetchCommodities();
     await this.fetchAvailableYears();
     this.buildToolbar();
     this.buildFilterBar();
     await this.refresh();
+  }
+
+  private async isConfigured(): Promise<{ ok: boolean; reason?: string }> {
+    if (!this.plugin.settings.journalFile) {
+      return { ok: false, reason: 'Journal file not configured. Open Settings to set the path to your .journal file.' };
+    }
+    try {
+      await this.client.testConnection(this.plugin.settings.hledgerPath);
+      return { ok: true };
+    } catch (err) {
+      return {
+        ok: false,
+        reason: `Could not reach hledger: ${err instanceof Error ? err.message : String(err)}. Ensure hledger is installed and the binary path is correct in Settings.`,
+      };
+    }
+  }
+
+  private renderOnboarding(reason?: string): void {
+    this.tabBarContainer.empty();
+    this.toolbarContainer.empty();
+    this.filterBarContainer.empty();
+    this.loadingContainer.style.display = 'none';
+    this.contentContainer.empty();
+    this.errorContainer.empty();
+
+    const card = this.contentContainer.createDiv({ cls: 'hldg-onboarding' });
+    card.createEl('h2', { text: 'hledger Dashboard' });
+    card.createEl('p', { text: 'Configure the plugin to get started:' });
+
+    const steps = card.createEl('ol');
+    const step1 = steps.createEl('li');
+    step1.createEl('strong', { text: 'Install hledger' });
+    step1.createEl('br');
+    step1.appendText('Ensure hledger 1.52+ is installed and available (run "hledger --version" to verify).');
+
+    const step2 = steps.createEl('li');
+    const btn = step2.createEl('button', { text: 'Open Settings', cls: 'mod-cta' });
+    btn.addEventListener('click', () => {
+      (this.app as any).setting.open();
+    });
+    step2.appendText('  Set the journal file path and target currency.');
+
+    const step3 = steps.createEl('li');
+    step3.appendText('Click the Refresh button (↻) to load your dashboard.');
+
+    if (reason) {
+      card.createEl('hr');
+      card.createEl('p', { text: `Details: ${reason}`, cls: 'hldg-onboarding-detail' });
+    }
   }
 
   private async fetchCommodities(): Promise<void> {
@@ -233,7 +288,7 @@ export class HledgerDashboardView extends ItemView {
   }
 
   private async openCurrencyPicker(anchorEl: HTMLElement): Promise<void> {
-    const commodities = this.commodities.length > 0 ? this.commodities : ['$', 'EGP'];
+    const commodities = this.commodities.length > 0 ? this.commodities : ['$'];
     const shared = { selected: new Set(this.filterState.currencies) };
     const syncFilter = () => {
       this.filterState.currencies = [...shared.selected];
@@ -247,6 +302,16 @@ export class HledgerDashboardView extends ItemView {
   }
 
   async refresh(): Promise<void> {
+    const check = await this.isConfigured();
+    if (!check.ok) {
+      this.renderOnboarding(check.reason);
+      return;
+    }
+    this.buildTabBar();
+    await this.fetchCommodities();
+    await this.fetchAvailableYears();
+    this.buildToolbar();
+    this.buildFilterBar();
     this.cache.invalidate();
     await this.renderActiveTab();
   }
@@ -264,7 +329,7 @@ export class HledgerDashboardView extends ItemView {
       vaultRoot: (this.app.vault.adapter as any).getBasePath(),
       hledgerPath: this.plugin.settings.hledgerPath,
       commodities: this.commodities,
-      targetCurrency: this.plugin.settings.targetCurrency || 'EGP',
+      targetCurrency: this.plugin.settings.targetCurrency,
       filter: this.filterState,
       uiState: this.uiState,
       onApplyFilter: (patterns) => {
