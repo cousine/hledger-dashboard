@@ -45,6 +45,7 @@ export class HledgerDashboardView extends ItemView {
   private currentDropdown: Dropdown | null = null;
   private availableYears: number[] = [];
   private uiState: DashboardUIState;
+  private shellInitialized = false;
 
   constructor(leaf: WorkspaceLeaf, plugin: HledgerDashboardPlugin) {
     super(leaf);
@@ -95,17 +96,6 @@ export class HledgerDashboardView extends ItemView {
     this.errorContainer = contentEl.createDiv();
     this.contentContainer = contentEl.createDiv({ cls: 'hldg-content' });
 
-    const check = await this.isConfigured();
-    if (!check.ok) {
-      this.renderOnboarding(check.reason);
-      return;
-    }
-
-    this.buildTabBar();
-    await this.fetchCommodities();
-    await this.fetchAvailableYears();
-    this.buildToolbar();
-    this.buildFilterBar();
     await this.refresh();
   }
 
@@ -301,17 +291,25 @@ export class HledgerDashboardView extends ItemView {
     }, undefined);
   }
 
-  async refresh(): Promise<void> {
-    const check = await this.isConfigured();
-    if (!check.ok) {
-      this.renderOnboarding(check.reason);
-      return;
-    }
+  private async initShell(): Promise<void> {
     this.buildTabBar();
     await this.fetchCommodities();
     await this.fetchAvailableYears();
     this.buildToolbar();
     this.buildFilterBar();
+    this.shellInitialized = true;
+  }
+
+  async refresh(): Promise<void> {
+    const check = await this.isConfigured();
+    if (!check.ok) {
+      this.shellInitialized = false;
+      this.renderOnboarding(check.reason);
+      return;
+    }
+    if (!this.shellInitialized) {
+      await this.initShell();
+    }
     this.cache.invalidate();
     await this.renderActiveTab();
   }
