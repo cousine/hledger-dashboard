@@ -1,6 +1,6 @@
 {
   "name": "hledger-dashboard",
-  "version": "0.2.1",
+  "version": "1.0.0",
   "description": "Obsidian plugin: financial dashboard for hledger journals",
   "main": "main.js",
   "scripts": {

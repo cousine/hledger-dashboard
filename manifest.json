@@ -1,7 +1,7 @@
 {
   "id": "hledger-dashboard",
   "name": "hledger Dashboard",
-  "version": "0.2.1",
+  "version": "1.0.0",
   "minAppVersion": "1.11.4",
   "description": "Full financial dashboard for hledger journals.",
   "author": "cousine",
