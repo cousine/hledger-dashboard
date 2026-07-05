@@ -76,7 +76,8 @@ export function getColorForAccount(account: string): string {
 }
 
 export function getCSSVar(name: string): string {
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  const root = (activeDocument ?? document).documentElement;
+  return getComputedStyle(root).getPropertyValue(name).trim();
 }
 
 export function cssColor(name: string, fallback: string): string {

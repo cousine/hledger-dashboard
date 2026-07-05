@@ -294,6 +294,8 @@ const CSS_FALLBACKS: Record<string, string> = {
 };
 
 function getCSSColor(variable: string): string {
-  const val = getComputedStyle(document.body).getPropertyValue(variable).trim();
+  const val = getComputedStyle((activeDocument ?? document).body)
+    .getPropertyValue(variable)
+    .trim();
   return val || CSS_FALLBACKS[variable] || '#c0caf5';
 }

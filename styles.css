@@ -167,6 +167,18 @@
   border-collapse: collapse;
   font-size: var(--font-ui-small);
 }
+.hldg-table-fixed {
+  table-layout: fixed;
+}
+.hldg-clickable {
+  cursor: pointer;
+}
+.hldg-align-right {
+  text-align: right;
+}
+.hldg-align-center {
+  text-align: center;
+}
 .hldg-table th {
   text-align: left;
   padding: 6px 10px;
@@ -665,6 +677,7 @@
   align-items: center;
   gap: 5px;
   padding: 2px 4px;
+  padding-left: calc(var(--hldg-depth, 0) * 18px + 4px);
   font-size: var(--font-ui-small);
   position: relative;
 }

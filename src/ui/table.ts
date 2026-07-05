@@ -56,7 +56,7 @@ export function buildTable(
 ): HTMLTableElement {
   const table = container.createEl('table', { cls: 'hldg-table' });
   const hasWidth = columns.some((c) => c.width);
-  if (hasWidth) table.style.tableLayout = 'fixed';
+  if (hasWidth) table.addClass('hldg-table-fixed');
   const thead = table.createEl('thead');
   const headerRow = thead.createEl('tr');
   const tbody = table.createEl('tbody');
@@ -82,17 +82,19 @@ export function buildTable(
           td.textContent = cell;
         } else {
           if (cell.onClick || cell.cls) {
-            const span = td.createSpan({ text: cell.text, cls: cell.cls });
+            let spanCls = cell.cls || '';
+            if (cell.onClick) spanCls += ' hldg-clickable';
+            const span = td.createSpan({ text: cell.text, cls: spanCls.trim() || undefined });
             if (cell.onClick) {
-              span.style.cursor = 'pointer';
               span.addEventListener('click', cell.onClick);
             }
           } else {
             td.textContent = cell.text;
           }
         }
-        if (columns[ci]?.align === 'right') td.style.textAlign = 'right';
-        else if (columns[ci]?.align === 'center') td.style.textAlign = 'center';
+        const colAlign = columns[ci]?.align;
+        if (colAlign === 'right') td.addClass('hldg-align-right');
+        else if (colAlign === 'center') td.addClass('hldg-align-center');
         const colWidth = columns[ci]?.width;
         if (colWidth) td.style.width = colWidth;
       }
@@ -108,17 +110,19 @@ export function buildTable(
             td.textContent = cell;
           } else {
             if (cell.onClick || cell.cls) {
-              const span = td.createSpan({ text: cell.text, cls: cell.cls });
+              let spanCls = cell.cls || '';
+              if (cell.onClick) spanCls += ' hldg-clickable';
+              const span = td.createSpan({ text: cell.text, cls: spanCls.trim() || undefined });
               if (cell.onClick) {
-                span.style.cursor = 'pointer';
                 span.addEventListener('click', cell.onClick);
               }
             } else {
               td.textContent = cell.text;
             }
           }
-          if (columns[ci]?.align === 'right') td.style.textAlign = 'right';
-          else if (columns[ci]?.align === 'center') td.style.textAlign = 'center';
+          const cellAlign = columns[ci]?.align;
+          if (cellAlign === 'right') td.addClass('hldg-align-right');
+          else if (cellAlign === 'center') td.addClass('hldg-align-center');
           const cellWidth = columns[ci]?.width;
           if (cellWidth) td.style.width = cellWidth;
         }
@@ -137,11 +141,9 @@ export function buildTable(
         label += internalSortAsc ? ' ↑' : ' ↓';
       }
       const th = headerRow.createEl('th', { text: label });
-      if (col.align === 'right') th.style.textAlign = 'right';
-      else if (col.align === 'center') th.style.textAlign = 'center';
+      if (col.align === 'right') th.addClass('hldg-align-right');
+      else if (col.align === 'center') th.addClass('hldg-align-center');
       if (col.width) th.style.width = col.width;
-      th.style.cursor = 'pointer';
-      th.style.userSelect = 'none';
       th.addEventListener('click', () => {
         if (onSortChange) {
           onSortChange(ci);
