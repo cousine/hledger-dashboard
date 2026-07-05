@@ -3,7 +3,7 @@
   "name": "hledger Dashboard",
   "version": "0.1.1",
   "minAppVersion": "1.11.4",
-  "description": "Full financial dashboard for hledger journals",
+  "description": "Full financial dashboard for hledger journals.",
   "author": "cousine",
   "authorUrl": "https://cousine.me",
   "isDesktopOnly": true
