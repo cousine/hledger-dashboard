@@ -27,6 +27,10 @@ jobs:
       - name: Verify TOC is up to date
         run: pnpm run toc:check
 
+      - run: pnpm run lint:check
+
+      - run: pnpm run typecheck
+
       - run: pnpm run test:run
 
       - run: pnpm run test:coverage
