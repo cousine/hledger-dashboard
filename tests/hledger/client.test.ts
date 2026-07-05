@@ -4,7 +4,7 @@ import { HledgerClient } from '../../src/hledger/client';
 type ExecCallback = (error: Error | null, stdout: string, stderr: string) => void;
 
 const mockExecFile = vi.hoisted(() => vi.fn());
-vi.mock('node:child_process', () => ({
+vi.mock('child_process', () => ({
   default: { execFile: mockExecFile },
   execFile: mockExecFile,
 }));

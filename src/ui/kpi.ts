@@ -6,7 +6,7 @@ export function buildKpiCard(
 ): HTMLElement {
   const card = container.createDiv({ cls: 'hldg-kpi-card' });
   card.createDiv({ cls: 'hldg-kpi-label', text: label });
-  const _valEl = card.createDiv({ cls: `hldg-kpi-value ${colorClass}`, text: value });
+  card.createDiv({ cls: `hldg-kpi-value ${colorClass}`, text: value });
   return card;
 }
 

@@ -76,7 +76,7 @@ export function getColorForAccount(account: string): string {
 }
 
 export function getCSSVar(name: string): string {
-  const root = (activeDocument ?? document).documentElement;
+  const root = activeDocument.documentElement;
   return getComputedStyle(root).getPropertyValue(name).trim();
 }
 

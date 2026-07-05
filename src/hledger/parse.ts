@@ -84,7 +84,7 @@ export function parseAmounts(amounts: HledgerAmount[]): { quantity: number; comm
 }
 
 export function extractFromJson(stdout: string): BalanceEntry[] {
-  const raw: unknown[][] = JSON.parse(stdout || '[]');
+  const raw = JSON.parse(stdout || '[]') as unknown[][];
   const accounts = Array.isArray(raw[0]) ? (raw[0] as unknown[][]) : raw;
   const result: BalanceEntry[] = [];
   for (const entry of accounts) {
@@ -103,7 +103,7 @@ export function extractFromJson(stdout: string): BalanceEntry[] {
 }
 
 export function extractFlat(stdout: string): BalanceEntry[] {
-  const raw: unknown[][] = JSON.parse(stdout || '[]');
+  const raw = JSON.parse(stdout || '[]') as unknown[][];
   const entries = Array.isArray(raw[0]) ? (raw[0] as unknown[][]) : raw;
   const out: BalanceEntry[] = [];
   for (const e of entries) {
@@ -126,8 +126,8 @@ export function extractMonthlyTrend(stdout: string): {
   income: number[];
   expenses: number[];
 } {
-  const report: HledgerPeriodReport = JSON.parse(stdout || '[]');
-  const r: HledgerPeriodReport = Array.isArray(report) ? report[0] : report;
+  const report = JSON.parse(stdout || '[]') as HledgerPeriodReport | HledgerPeriodReport[];
+  const r = Array.isArray(report) ? report[0] : report;
   if (!r?.prDates || !r.prRows) return { months: [], income: [], expenses: [] };
   const months = r.prDates.map((dp: { 0?: { contents?: string } }) => {
     const d = dp[0]?.contents || '';
@@ -157,8 +157,8 @@ export function extractBalanceTimeSeries(stdout: string): {
   months: string[];
   accounts: Record<string, number[]>;
 } {
-  const report = JSON.parse(stdout);
-  const r: HledgerPeriodReport = Array.isArray(report) ? report[0] : report;
+  const report = JSON.parse(stdout) as HledgerPeriodReport | HledgerPeriodReport[];
+  const r = Array.isArray(report) ? report[0] : report;
   if (!r?.prDates || !r.prRows) return { months: [], accounts: {} };
   const months = r.prDates.map((dp: { 0?: { contents?: string } }) => {
     const d = dp[0]?.contents || '';
@@ -188,7 +188,7 @@ export function extractMonthlyData(stdout: string): {
   expenses: number[];
   liabilities: number[];
 } {
-  const report = JSON.parse(stdout);
+  const report = JSON.parse(stdout) as HledgerPeriodReport | HledgerPeriodReport[];
   const r = Array.isArray(report) ? report[0] : report;
   if (!r?.prDates || !r.prRows) return { months: [], income: [], expenses: [], liabilities: [] };
   const months = r.prDates.map((dp: { 0?: { contents?: string } }) => {
@@ -221,7 +221,7 @@ export function extractMonthlyAssetsByGroup(stdout: string): {
   months: string[];
   groups: Record<string, number[]>;
 } {
-  const report = JSON.parse(stdout);
+  const report = JSON.parse(stdout) as HledgerPeriodReport | HledgerPeriodReport[];
   const r = Array.isArray(report) ? report[0] : report;
   if (!r?.prDates || !r.prRows) return { months: [], groups: {} };
   const months = r.prDates.map((dp: { 0?: { contents?: string } }) => {
@@ -234,8 +234,8 @@ export function extractMonthlyAssetsByGroup(stdout: string): {
     if (name.startsWith('assets:')) {
       const groupName = name.replace('assets:', '');
       const vals = new Array(months.length).fill(0);
-      for (let i = 0; i < row.prrAmounts.length && i < months.length; i++) {
-        const amtPairs = row.prrAmounts[i];
+      for (let i = 0; i < (row.prrAmounts?.length ?? 0) && i < months.length; i++) {
+        const amtPairs = row.prrAmounts?.[i];
         if (Array.isArray(amtPairs)) {
           vals[i] = amtPairs.reduce(
             (s: number, a: HledgerAmount) => s + (a.aquantity?.floatingPoint ?? 0),
@@ -250,8 +250,8 @@ export function extractMonthlyAssetsByGroup(stdout: string): {
 }
 
 export function extractMonthlyAmounts(stdout: string): { months: string[]; amounts: number[] } {
-  const report: HledgerPeriodReport = JSON.parse(stdout);
-  const r: HledgerPeriodReport = Array.isArray(report) ? report[0] : report;
+  const report = JSON.parse(stdout) as HledgerPeriodReport | HledgerPeriodReport[];
+  const r = Array.isArray(report) ? report[0] : report;
   if (!r?.prDates || !r.prRows) return { months: [], amounts: [] };
   const months = r.prDates.map((dp: { 0?: { contents?: string } }) => {
     const d = dp[0]?.contents || '';
@@ -281,7 +281,7 @@ export interface TransferLeg {
 }
 
 export function parsePrintTransfers(stdout: string): TransferLeg[] {
-  const raw: HledgerTxn[] = JSON.parse(stdout || '[]');
+  const raw = JSON.parse(stdout || '[]') as HledgerTxn[];
   const txns = Array.isArray(raw) ? raw : [];
   const result: TransferLeg[] = [];
   for (const txn of txns) {
@@ -310,7 +310,7 @@ export function parsePrintTransfers(stdout: string): TransferLeg[] {
 }
 
 export function extractRegister(stdout: string): RegisterEntry[] {
-  const raw: unknown[][] = JSON.parse(stdout || '[]');
+  const raw = JSON.parse(stdout || '[]') as unknown[][];
   const result: RegisterEntry[] = [];
   for (const entry of raw) {
     if (!Array.isArray(entry) || entry.length < 4) continue;

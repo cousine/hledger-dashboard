@@ -42,7 +42,7 @@ export async function renderTransactions(
   const searchInput = controlsRow.createEl('input', {
     cls: 'hldg-txn-search',
     attr: { type: 'text', placeholder: 'Search description…' },
-  }) as HTMLInputElement;
+  });
 
   const contentDiv = container.createDiv({ cls: 'hldg-txn-content' });
 

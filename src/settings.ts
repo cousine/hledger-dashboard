@@ -38,14 +38,13 @@ export class HledgerDashboardSettingTab extends PluginSettingTab {
   }
 
   hide(): void {
-    for (const id of this.closeBtnTimers) clearTimeout(id);
+    for (const id of this.closeBtnTimers) window.clearTimeout(id);
     this.closeBtnTimers = [];
   }
 
   display(): void {
     const { containerEl } = this;
     containerEl.empty();
-    new Setting(containerEl).setName('hledger Dashboard Settings').setHeading();
 
     new Setting(containerEl)
       .setName('hledger binary path')
@@ -107,7 +106,7 @@ export class HledgerDashboardSettingTab extends PluginSettingTab {
         btn.setButtonText('Browse').onClick(() => {
           new JournalFileSuggestModal(this.app, (path) => {
             this.plugin.settings.journalFile = path;
-            this.plugin.saveSettings();
+            void this.plugin.saveSettings();
             this.display();
           }).open();
         }),

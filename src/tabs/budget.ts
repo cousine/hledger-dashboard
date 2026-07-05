@@ -136,7 +136,7 @@ export async function renderBudget(
         });
       }
     }
-  } catch (_e) {
+  } catch {
     // future query failed silently
   }
 
@@ -358,14 +358,14 @@ export async function renderBudget(
       'Dec',
     ];
 
-    const expenseActual: (number | null)[] = new Array(12).fill(null);
-    const expensePredicted: (number | null)[] = new Array(12).fill(null);
+    const expenseActual: (number | null)[] = Array.from({ length: 12 }, () => null);
+    const expensePredicted: (number | null)[] = Array.from({ length: 12 }, () => null);
 
     const groupActual: Record<string, (number | null)[]> = {};
     const groupPredicted: Record<string, (number | null)[]> = {};
     for (const g of groupNames) {
-      groupActual[g] = new Array(12).fill(null);
-      groupPredicted[g] = new Array(12).fill(null);
+      groupActual[g] = Array.from({ length: 12 }, () => null);
+      groupPredicted[g] = Array.from({ length: 12 }, () => null);
     }
 
     for (let i = 0; i < 12 && i < monthlyAssets.months.length; i++) {
@@ -465,7 +465,7 @@ export async function renderBudget(
     }
 
     createLineChart(forecastContainer, monthLabels, datasets);
-  } catch (_e) {
+  } catch {
     // forecast chart failed silently
   }
 }

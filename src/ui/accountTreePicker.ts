@@ -35,7 +35,11 @@ export function selectAll(
   for (const n of nodes) {
     const match = !query || n.fullPath.toLowerCase().includes(query.toLowerCase());
     if (match) {
-      checked ? selected.add(n.fullPath) : selected.delete(n.fullPath);
+      if (checked) {
+        selected.add(n.fullPath);
+      } else {
+        selected.delete(n.fullPath);
+      }
     }
     selectAll(n.children, checked, query, selected);
   }

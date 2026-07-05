@@ -49,7 +49,7 @@ export async function getRegister(
   if (period) args.push('-p', period.hledgerPeriod);
 
   const stdout = await client.exec(binaryPath, args, journalFile);
-  const raw: unknown[][] = JSON.parse(stdout || '[]');
+  const raw = JSON.parse(stdout || '[]') as unknown[][];
   const result: RegisterEntry[] = [];
   for (const entry of raw) {
     if (!Array.isArray(entry) || entry.length < 4) continue;

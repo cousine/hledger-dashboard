@@ -17,22 +17,24 @@ export default class HledgerDashboardPlugin extends Plugin {
     this.registerView(VIEW_TYPE_HLEDGER_DASHBOARD, (leaf) => new HledgerDashboardView(leaf, this));
 
     this.addRibbonIcon('dollar-sign', 'Open hledger Dashboard', () => {
-      this.activateView();
+      void this.activateView();
     });
 
     this.addCommand({
-      id: 'open-hledger-dashboard',
-      name: 'Open hledger Dashboard',
-      callback: () => this.activateView(),
+      id: 'open',
+      name: 'Open Dashboard',
+      callback: () => {
+        void this.activateView();
+      },
     });
 
     this.addCommand({
-      id: 'refresh-hledger-dashboard',
-      name: 'Refresh hledger Dashboard',
+      id: 'refresh',
+      name: 'Refresh Dashboard',
       callback: () => {
         const leaf = this.app.workspace.getLeavesOfType(VIEW_TYPE_HLEDGER_DASHBOARD).first();
         if (leaf?.view instanceof HledgerDashboardView) {
-          leaf.view.refresh();
+          void leaf.view.refresh();
         }
       },
     });
@@ -40,15 +42,19 @@ export default class HledgerDashboardPlugin extends Plugin {
     this.addSettingTab(new HledgerDashboardSettingTab(this.app, this));
   }
 
-  async onunload(): Promise<void> {
+  onunload(): void {
     if (this.saveUIStateTimer !== null) {
-      clearTimeout(this.saveUIStateTimer);
-      await this.saveData(this.settings);
+      window.clearTimeout(this.saveUIStateTimer);
+      void this.saveData(this.settings);
     }
   }
 
   async loadSettings(): Promise<void> {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    this.settings = Object.assign(
+      {},
+      DEFAULT_SETTINGS,
+      (await this.loadData()) as Partial<HledgerDashboardSettings>,
+    );
   }
 
   async saveSettings(): Promise<void> {
@@ -58,7 +64,7 @@ export default class HledgerDashboardPlugin extends Plugin {
   saveUIState(partial: Partial<DashboardUIState>): void {
     if (!this.settings.uiState) this.settings.uiState = {} as DashboardUIState;
     Object.assign(this.settings.uiState, partial);
-    if (this.saveUIStateTimer !== null) clearTimeout(this.saveUIStateTimer);
+    if (this.saveUIStateTimer !== null) window.clearTimeout(this.saveUIStateTimer);
     this.saveUIStateTimer = window.setTimeout(() => {
       this.saveUIStateTimer = null;
       void this.saveData(this.settings);
@@ -77,6 +83,6 @@ export default class HledgerDashboardPlugin extends Plugin {
       });
     }
 
-    workspace.revealLeaf(leaf);
+    void workspace.revealLeaf(leaf);
   }
 }

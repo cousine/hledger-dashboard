@@ -1,5 +1,7 @@
-import { execFile } from 'node:child_process';
-import * as path from 'node:path';
+// biome-ignore lint/style/useNodejsImportProtocol: Obsidian plugin linter doesn't resolve node: protocol types
+import { execFile } from 'child_process';
+// biome-ignore lint/style/useNodejsImportProtocol: Obsidian plugin linter doesn't resolve node: protocol types
+import * as path from 'path';
 
 export class HledgerClient {
   private vaultRoot: string;
@@ -36,7 +38,7 @@ export class HledgerClient {
           timeout: 30000,
           maxBuffer: 10 * 1024 * 1024,
         },
-        (error, stdout, stderr) => {
+        (error: Error | null, stdout: string, stderr: string) => {
           if (error) {
             const msg = stderr?.trim() || error.message;
             reject(new Error(msg));
@@ -58,7 +60,9 @@ export class HledgerClient {
       for (const fb of fallbacks) {
         try {
           return await this.execRaw(fb, args, journalFile);
-        } catch {}
+        } catch {
+          /* try fallback */
+        }
       }
       throw err;
     }
@@ -102,7 +106,7 @@ export class HledgerClient {
         binaryPath,
         ['--version'],
         { env: this.buildExecEnv(), timeout: 10000 },
-        (error, stdout, stderr) => {
+        (error: Error | null, stdout: string, stderr: string) => {
           if (error) reject(new Error(stderr?.trim() || error.message));
           else resolve(stdout.trim());
         },

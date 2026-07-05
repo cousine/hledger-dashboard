@@ -150,7 +150,7 @@ export async function renderActivity(
           },
         ]);
       }
-    } catch (_e) {
+    } catch {
       // monthly query failed silently
     }
   }

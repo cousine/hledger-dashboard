@@ -262,8 +262,8 @@
   height: 260px;
 }
 .hldg-chart-container canvas {
-  width: 100% !important;
-  height: 100% !important;
+  width: 100%;
+  height: 100%;
 }
 
 /* Two-column layout */
@@ -432,12 +432,11 @@
   color: var(--text-normal);
   text-decoration: none;
 }
-.hldg-tab:focus,
-.hldg-tab:focus-visible,
-.hldg-tab:active {
-  outline: 0 !important;
-  outline: none !important;
-  box-shadow: none !important;
+.hldg-view .hldg-tab:focus,
+.hldg-view .hldg-tab:focus-visible,
+.hldg-view .hldg-tab:active {
+  outline: none;
+  box-shadow: none;
 }
 .hldg-tab::-moz-focus-inner {
   border: 0;
