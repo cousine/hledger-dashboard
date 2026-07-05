@@ -1,5 +1,12 @@
 # hledger Dashboard
 
+[![Tests](https://github.com/cousine/hledger-dashboard/actions/workflows/test.yml/badge.svg)](https://github.com/cousine/hledger-dashboard/actions/workflows/test.yml)
+[![Release](https://github.com/cousine/hledger-dashboard/actions/workflows/release.yml/badge.svg)](https://github.com/cousine/hledger-dashboard/actions/workflows/release.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![GitHub release](https://img.shields.io/github/v/release/cousine/hledger-dashboard)](https://github.com/cousine/hledger-dashboard/releases)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D26-339933?logo=node.js&logoColor=white)](https://nodejs.org)
+[![pnpm](https://img.shields.io/badge/pnpm-11-F69220?logo=pnpm&logoColor=white)](https://pnpm.io)
+
 Full financial dashboard for [hledger](https://hledger.org) journals, inside Obsidian.
 
 ![Dashboard](docs/screenshot.png)
@@ -133,6 +140,78 @@ An `equity:transfer` posting on a transaction marks all other postings as legs o
 ## Privacy
 
 This plugin processes all data **locally** on your machine. It shells out to your hledger binary and reads your journal file directly. No data is sent over the network — there are zero HTTP requests.
+
+## Contributing
+
+Contributions welcome! `main` is a protected branch — all changes go through pull requests.
+
+### Prerequisites
+
+- **Node.js 26** — matched automatically via `.nvmrc` (`nvm use`)
+- **pnpm 11+** — enable with `corepack enable pnpm`
+- **hledger 1.52+** — only required for integration tests
+
+### Setup
+
+```bash
+git clone https://github.com/cousine/hledger-dashboard.git
+cd hledger-dashboard
+nvm use
+pnpm install
+```
+
+### Development
+
+```bash
+pnpm run dev    # esbuild watch mode with inline sourcemaps → main.js
+pnpm run build  # production bundle → main.js
+```
+
+### Testing
+
+```bash
+pnpm run test:run                       # unit tests
+pnpm run test:coverage                  # unit tests + coverage report
+RUN_INTEGRATION=1 pnpm run test:run     # + smoke tests against real hledger binary
+```
+
+Integration tests use `sample.journal` and require `hledger` on PATH.
+
+### Obsidian Plugin Workflow
+
+To test changes live in Obsidian, symlink the repo into a vault's plugins folder:
+
+```bash
+ln -s /absolute/path/to/hledger-dashboard /absolute/path/to/vault/.obsidian/plugins/hledger-dashboard
+```
+
+With `pnpm run dev` watching, reload Obsidian (`Cmd/Ctrl+R`) after each rebuild to pick up changes.
+
+### Pull Request Workflow
+
+1. Branch from `main` (`feature/...`, `fix/...`, `docs/...`, etc.)
+2. Ensure `pnpm run test:run` passes locally before pushing
+3. Open a PR against `main`
+4. CI runs the test suite + coverage — **all checks must pass before merge**
+5. Keep branches focused; one logical change per PR
+
+### Commit Messages
+
+This project follows [Conventional Commits](https://www.conventionalcommits.org/):
+
+| Type       | Use for                          |
+| ---------- | -------------------------------- |
+| `feat`     | New features                     |
+| `fix`      | Bug fixes                        |
+| `test`     | Test additions or changes        |
+| `refactor` | Code restructuring (no behavior change) |
+| `docs`     | Documentation                    |
+| `chore`    | Tooling, deps, maintenance       |
+| `perf`     | Performance improvements         |
+
+Example: `feat: add CSV export to transactions tab`
+
+PR titles should follow the same format (used as the squash-merge commit message).
 
 ## License
 
