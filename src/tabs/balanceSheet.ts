@@ -181,7 +181,7 @@ export async function renderBalanceSheet(
 
         createLineChart(chartContainer, monthly.months, datasets);
       }
-    } catch (_e) {
+    } catch {
       // monthly query failed silently
     }
   }

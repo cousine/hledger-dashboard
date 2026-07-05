@@ -30,7 +30,11 @@ export function buildCurrencyContent(
       const cb = item.createEl('input', { attr: { type: 'checkbox' } });
       cb.checked = selected.has(c);
       cb.addEventListener('change', () => {
-        cb.checked ? selected.add(c) : selected.delete(c);
+        if (cb.checked) {
+          selected.add(c);
+        } else {
+          selected.delete(c);
+        }
         handleChange();
       });
       item.createSpan({ text: c });

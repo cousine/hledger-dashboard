@@ -173,7 +173,7 @@ export class HledgerDashboardView extends ItemView {
     const step3 = steps.createEl('li');
     const refreshBtn = step3.createEl('button', { text: 'Refresh', cls: 'mod-cta' });
     refreshBtn.addEventListener('click', () => {
-      this.refresh();
+      void this.refresh();
     });
     step3.appendText('  Load your dashboard.');
 
@@ -186,24 +186,8 @@ export class HledgerDashboardView extends ItemView {
       text: 'Load sample journal',
       cls: 'mod-cta',
     });
-    sampleBtn.addEventListener('click', async () => {
-      try {
-        const samplePath = 'sample.journal';
-        const existing = this.app.vault.getFileByPath(samplePath);
-        if (existing) {
-          await this.app.vault.modify(existing, SAMPLE_JOURNAL);
-        } else {
-          await this.app.vault.create(samplePath, SAMPLE_JOURNAL);
-        }
-        this.plugin.settings.journalFile = 'sample.journal';
-        await this.plugin.saveSettings();
-        this.refresh();
-      } catch (err) {
-        sampleSection.createEl('p', {
-          text: `Could not load sample: ${err instanceof Error ? err.message : String(err)}`,
-          cls: 'hldg-onboarding-detail',
-        });
-      }
+    sampleBtn.addEventListener('click', () => {
+      void this.handleLoadSampleJournal(sampleSection);
     });
 
     if (reason) {
@@ -234,6 +218,22 @@ export class HledgerDashboardView extends ItemView {
     }
   }
 
+  private async handlePeriodChange(p: DashboardPeriod): Promise<void> {
+    this.currentPeriod = p;
+    this.cache.setPeriod(p.hledgerPeriod);
+    this.plugin.saveUIState({
+      periodPreset: p.preset,
+      periodStartDate: p.startDate,
+      periodEndDate: p.endDate,
+    });
+    await this.renderActiveTab();
+  }
+
+  private async handleRefresh(): Promise<void> {
+    this.cache.invalidate();
+    await this.renderActiveTab();
+  }
+
   private buildToolbar(): void {
     const result = buildToolbar(
       this.toolbarContainer,
@@ -243,19 +243,11 @@ export class HledgerDashboardView extends ItemView {
         selectedYear: this.uiState.selectedYear,
       },
       {
-        onPeriodChange: async (p: DashboardPeriod) => {
-          this.currentPeriod = p;
-          this.cache.setPeriod(p.hledgerPeriod);
-          this.plugin.saveUIState({
-            periodPreset: p.preset,
-            periodStartDate: p.startDate,
-            periodEndDate: p.endDate,
-          });
-          await this.renderActiveTab();
+        onPeriodChange: (p) => {
+          void this.handlePeriodChange(p);
         },
-        onRefresh: async () => {
-          this.cache.invalidate();
-          await this.renderActiveTab();
+        onRefresh: () => {
+          void this.handleRefresh();
         },
         onYearChange: (year: string) => {
           this.uiState.selectedYear = year;
@@ -277,7 +269,7 @@ export class HledgerDashboardView extends ItemView {
             periodStartDate: this.currentPeriod.startDate,
             periodEndDate: this.currentPeriod.endDate,
           });
-          this.renderActiveTab();
+          void this.renderActiveTab();
         },
       },
     );
@@ -291,7 +283,7 @@ export class HledgerDashboardView extends ItemView {
       this.activeTabId = id;
       this.plugin.saveUIState({ activeTab: id });
       this.buildFilterBar();
-      this.renderActiveTab();
+      void this.renderActiveTab();
     });
   }
 
@@ -306,27 +298,31 @@ export class HledgerDashboardView extends ItemView {
 
   private getFilterCallbacks(): FilterBarCallbacks {
     return {
-      onOpenAccountPicker: (anchorEl) => this.openAccountPicker(anchorEl),
+      onOpenAccountPicker: (anchorEl) => {
+        void this.openAccountPicker(anchorEl);
+      },
       onRemoveAccountPattern: (pat) => {
         this.filterState.accountPatterns = this.filterState.accountPatterns.filter(
           (p) => p !== pat,
         );
         this.plugin.saveUIState({ filterAccountPatterns: this.filterState.accountPatterns });
         this.buildFilterBar();
-        this.renderActiveTab();
+        void this.renderActiveTab();
       },
-      onOpenCurrencyPicker: (anchorEl) => this.openCurrencyPicker(anchorEl),
+      onOpenCurrencyPicker: (anchorEl) => {
+        void this.openCurrencyPicker(anchorEl);
+      },
       onRemoveCurrency: (c) => {
         this.filterState.currencies = this.filterState.currencies.filter((x) => x !== c);
         this.plugin.saveUIState({ filterCurrencies: this.filterState.currencies });
         this.buildFilterBar();
-        this.renderActiveTab();
+        void this.renderActiveTab();
       },
       onClearFilters: () => {
         this.filterState = defaultTabFilter();
         this.plugin.saveUIState({ filterAccountPatterns: [], filterCurrencies: [] });
         this.buildFilterBar();
-        this.renderActiveTab();
+        void this.renderActiveTab();
       },
       onApplyShortcut: (sc) => {
         this.filterState = {
@@ -338,7 +334,7 @@ export class HledgerDashboardView extends ItemView {
           filterCurrencies: this.filterState.currencies,
         });
         this.buildFilterBar();
-        this.renderActiveTab();
+        void this.renderActiveTab();
       },
     };
   }
@@ -359,7 +355,7 @@ export class HledgerDashboardView extends ItemView {
       this.filterState.accountPatterns = [...shared.selected];
       this.plugin.saveUIState({ filterAccountPatterns: this.filterState.accountPatterns });
       this.buildFilterBar();
-      this.renderActiveTab();
+      void this.renderActiveTab();
     };
     const dd = new Dropdown(
       anchorEl,
@@ -380,9 +376,9 @@ export class HledgerDashboardView extends ItemView {
       this.filterState.currencies = [...shared.selected];
       this.plugin.saveUIState({ filterCurrencies: this.filterState.currencies });
       this.buildFilterBar();
-      this.renderActiveTab();
+      void this.renderActiveTab();
     };
-    const _dd = new Dropdown(
+    new Dropdown(
       anchorEl,
       (panel, _close) => {
         buildCurrencyContent(panel, commodities, shared.selected, syncFilter);
@@ -414,6 +410,26 @@ export class HledgerDashboardView extends ItemView {
     await this.renderActiveTab();
   }
 
+  private async handleLoadSampleJournal(sampleSection: HTMLElement): Promise<void> {
+    try {
+      const samplePath = 'sample.journal';
+      const existing = this.app.vault.getFileByPath(samplePath);
+      if (existing) {
+        await this.app.vault.modify(existing, SAMPLE_JOURNAL);
+      } else {
+        await this.app.vault.create(samplePath, SAMPLE_JOURNAL);
+      }
+      this.plugin.settings.journalFile = 'sample.journal';
+      await this.plugin.saveSettings();
+      await this.refresh();
+    } catch (err) {
+      sampleSection.createEl('p', {
+        text: `Could not load sample: ${err instanceof Error ? err.message : String(err)}`,
+        cls: 'hldg-onboarding-detail',
+      });
+    }
+  }
+
   private async renderActiveTab(): Promise<void> {
     destroyAllCharts();
     this.refreshBtn.disabled = true;
@@ -435,7 +451,7 @@ export class HledgerDashboardView extends ItemView {
         this.filterState.accountPatterns = patterns;
         this.plugin.saveUIState({ filterAccountPatterns: patterns });
         this.buildFilterBar();
-        this.renderActiveTab();
+        void this.renderActiveTab();
       },
       onNavigate: (tabId, filterPatterns) => {
         if (filterPatterns) {
@@ -446,7 +462,7 @@ export class HledgerDashboardView extends ItemView {
         this.activeTabId = tabId;
         this.plugin.saveUIState({ activeTab: tabId });
         this.buildTabBar();
-        this.renderActiveTab();
+        void this.renderActiveTab();
       },
       onUIStateChange: (partial) => {
         Object.assign(this.uiState, partial);
@@ -456,7 +472,7 @@ export class HledgerDashboardView extends ItemView {
 
     const savedScroll = this.contentContainer.scrollTop;
     try {
-      const tempDiv = (activeDocument ?? document).createElement('div');
+      const tempDiv = activeDocument.createElement('div');
       switch (this.activeTabId) {
         case 'balance-sheet':
           await renderBalanceSheet(tempDiv, this.client, ctx);

@@ -10,7 +10,7 @@ export class Dropdown {
     onClose?: () => void,
   ) {
     this.onClose = onClose;
-    const doc = activeDocument ?? document;
+    const doc = activeDocument;
     this.backdrop = doc.body.createDiv({ cls: 'hldg-dropdown-backdrop' });
     this.panel = this.backdrop.createDiv({ cls: 'hldg-dropdown-panel' });
 

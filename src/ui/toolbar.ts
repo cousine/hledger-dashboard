@@ -135,7 +135,7 @@ export function buildToolbar(
         callbacks.onYearChange((opt as HTMLElement).dataset.year || '');
       });
     });
-    (activeDocument ?? document).addEventListener('click', closePanel);
+    activeDocument.addEventListener('click', closePanel);
   }
 
   const makePresetBtn = (label: string, preset: DashboardPeriod['preset']) => {
@@ -151,7 +151,7 @@ export function buildToolbar(
       const newPeriod = buildPresetPeriod(preset, getDefaultDateValue());
       startInput.value = newPeriod.startDate;
       endInput.value = newPeriod.endDate;
-      callbacks.onPeriodChange(newPeriod);
+      void callbacks.onPeriodChange(newPeriod);
     });
     return btn;
   };
@@ -171,7 +171,7 @@ export function buildToolbar(
   const startInput = toolbar.createEl('input', {
     cls: 'hldg-toolbar-date',
     attr: { type: 'date' },
-  }) as HTMLInputElement;
+  });
   startInput.value = state.period.startDate;
 
   toolbar.createSpan({ cls: 'hldg-toolbar-date-sep', text: 'to' });
@@ -179,7 +179,7 @@ export function buildToolbar(
   const endInput = toolbar.createEl('input', {
     cls: 'hldg-toolbar-date',
     attr: { type: 'date' },
-  }) as HTMLInputElement;
+  });
   endInput.value = state.period.endDate;
 
   const applyRange = () => {
@@ -187,14 +187,16 @@ export function buildToolbar(
       b.removeClass('hldg-pill-active');
     });
     const newPeriod = buildCustomPeriod(startInput.value, endInput.value);
-    callbacks.onPeriodChange(newPeriod);
+    void callbacks.onPeriodChange(newPeriod);
   };
 
   startInput.addEventListener('change', applyRange);
   endInput.addEventListener('change', applyRange);
 
   const refreshBtn = toolbar.createEl('button', { cls: 'hldg-toolbar-refresh', text: '↻ Refresh' });
-  refreshBtn.addEventListener('click', () => callbacks.onRefresh());
+  refreshBtn.addEventListener('click', () => {
+    void callbacks.onRefresh();
+  });
 
   const errorEl = toolbar.createDiv({ cls: 'hldg-toolbar-error' });
 

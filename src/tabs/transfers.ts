@@ -30,7 +30,7 @@ export async function renderTransfers(
   ctx: DashboardContext,
 ): Promise<void> {
   directionFilter = ctx.uiState?.directionFilter ?? 'all';
-  const parentEl = container.parentElement as HTMLElement | null;
+  const parentEl = container.parentElement;
   const savedScroll = parentEl?.scrollTop ?? 0;
   container.empty();
   container.createEl('h2', { text: 'Transfers' });
@@ -165,7 +165,7 @@ export async function renderTransfers(
       if (directionFilter !== 'all') {
         directionFilter = 'all';
         ctx.onUIStateChange?.({ directionFilter: 'all' });
-        renderTransfers(container, client, ctx);
+        void renderTransfers(container, client, ctx);
       }
     });
     const outBtn = toggleRow.createEl('button', {
@@ -176,7 +176,7 @@ export async function renderTransfers(
       if (directionFilter !== 'out') {
         directionFilter = 'out';
         ctx.onUIStateChange?.({ directionFilter: 'out' });
-        renderTransfers(container, client, ctx);
+        void renderTransfers(container, client, ctx);
       }
     });
     const inBtn = toggleRow.createEl('button', {
@@ -187,7 +187,7 @@ export async function renderTransfers(
       if (directionFilter !== 'in') {
         directionFilter = 'in';
         ctx.onUIStateChange?.({ directionFilter: 'in' });
-        renderTransfers(container, client, ctx);
+        void renderTransfers(container, client, ctx);
       }
     });
     const rows: Row[] = filtered.map((l) => [
@@ -207,7 +207,7 @@ export async function renderTransfers(
             onClick: () => {
               directionFilter = directionFilter === 'out' ? 'all' : 'out';
               ctx.onUIStateChange?.({ directionFilter });
-              renderTransfers(container, client, ctx);
+              void renderTransfers(container, client, ctx);
             },
           }
         : {
@@ -218,7 +218,7 @@ export async function renderTransfers(
             onClick: () => {
               directionFilter = directionFilter === 'in' ? 'all' : 'in';
               ctx.onUIStateChange?.({ directionFilter });
-              renderTransfers(container, client, ctx);
+              void renderTransfers(container, client, ctx);
             },
           },
       { text: formatAmount(Math.abs(l.amount), ctx.targetCurrency), sortValue: Math.abs(l.amount) },

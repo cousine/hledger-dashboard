@@ -43,7 +43,7 @@ export function destroyChart(container: HTMLElement): void {
 }
 
 export function destroyAllCharts(): void {
-  for (const [_el, chart] of activeCharts) {
+  for (const [, chart] of activeCharts) {
     chart.destroy();
   }
   activeCharts.clear();
@@ -294,8 +294,6 @@ const CSS_FALLBACKS: Record<string, string> = {
 };
 
 function getCSSColor(variable: string): string {
-  const val = getComputedStyle((activeDocument ?? document).body)
-    .getPropertyValue(variable)
-    .trim();
+  const val = getComputedStyle(activeDocument.body).getPropertyValue(variable).trim();
   return val || CSS_FALLBACKS[variable] || '#c0caf5';
 }
