@@ -45,7 +45,6 @@ export class HledgerDashboardSettingTab extends PluginSettingTab {
   display(): void {
     const { containerEl } = this;
     containerEl.empty();
-    new Setting(containerEl).setName('General').setHeading();
 
     new Setting(containerEl)
       .setName('hledger binary path')

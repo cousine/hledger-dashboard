@@ -130,8 +130,8 @@ export async function renderBalanceSheet(
         );
 
         const numPeriods = monthly.months.length;
-        const assetsTotalTS = new Array(numPeriods).fill(0);
-        const liabilitiesTotalTS = new Array(numPeriods).fill(0);
+        const assetsTotalTS = Array.from({ length: numPeriods }, () => 0);
+        const liabilitiesTotalTS = Array.from({ length: numPeriods }, () => 0);
 
         for (const name of assetAccounts) {
           for (let i = 0; i < numPeriods; i++) {

@@ -1,6 +1,7 @@
-import { execFile } from 'node:child_process';
-import * as path from 'node:path';
-import process from 'node:process';
+// biome-ignore lint/style/useNodejsImportProtocol: Obsidian plugin linter doesn't resolve node: protocol types
+import { execFile } from 'child_process';
+// biome-ignore lint/style/useNodejsImportProtocol: Obsidian plugin linter doesn't resolve node: protocol types
+import * as path from 'path';
 
 export class HledgerClient {
   private vaultRoot: string;

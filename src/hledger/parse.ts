@@ -126,8 +126,8 @@ export function extractMonthlyTrend(stdout: string): {
   income: number[];
   expenses: number[];
 } {
-  const report = JSON.parse(stdout || '[]') as HledgerPeriodReport;
-  const r: HledgerPeriodReport = Array.isArray(report) ? report[0] : report;
+  const report = JSON.parse(stdout || '[]') as HledgerPeriodReport | HledgerPeriodReport[];
+  const r = Array.isArray(report) ? report[0] : report;
   if (!r?.prDates || !r.prRows) return { months: [], income: [], expenses: [] };
   const months = r.prDates.map((dp: { 0?: { contents?: string } }) => {
     const d = dp[0]?.contents || '';
@@ -157,7 +157,7 @@ export function extractBalanceTimeSeries(stdout: string): {
   months: string[];
   accounts: Record<string, number[]>;
 } {
-  const report = JSON.parse(stdout) as HledgerPeriodReport;
+  const report = JSON.parse(stdout) as HledgerPeriodReport | HledgerPeriodReport[];
   const r = Array.isArray(report) ? report[0] : report;
   if (!r?.prDates || !r.prRows) return { months: [], accounts: {} };
   const months = r.prDates.map((dp: { 0?: { contents?: string } }) => {
@@ -188,7 +188,7 @@ export function extractMonthlyData(stdout: string): {
   expenses: number[];
   liabilities: number[];
 } {
-  const report = JSON.parse(stdout) as HledgerPeriodReport;
+  const report = JSON.parse(stdout) as HledgerPeriodReport | HledgerPeriodReport[];
   const r = Array.isArray(report) ? report[0] : report;
   if (!r?.prDates || !r.prRows) return { months: [], income: [], expenses: [], liabilities: [] };
   const months = r.prDates.map((dp: { 0?: { contents?: string } }) => {
@@ -221,7 +221,7 @@ export function extractMonthlyAssetsByGroup(stdout: string): {
   months: string[];
   groups: Record<string, number[]>;
 } {
-  const report = JSON.parse(stdout) as HledgerPeriodReport;
+  const report = JSON.parse(stdout) as HledgerPeriodReport | HledgerPeriodReport[];
   const r = Array.isArray(report) ? report[0] : report;
   if (!r?.prDates || !r.prRows) return { months: [], groups: {} };
   const months = r.prDates.map((dp: { 0?: { contents?: string } }) => {
@@ -234,8 +234,8 @@ export function extractMonthlyAssetsByGroup(stdout: string): {
     if (name.startsWith('assets:')) {
       const groupName = name.replace('assets:', '');
       const vals = new Array(months.length).fill(0);
-      for (let i = 0; i < row.prrAmounts.length && i < months.length; i++) {
-        const amtPairs = row.prrAmounts[i];
+      for (let i = 0; i < (row.prrAmounts?.length ?? 0) && i < months.length; i++) {
+        const amtPairs = row.prrAmounts?.[i];
         if (Array.isArray(amtPairs)) {
           vals[i] = amtPairs.reduce(
             (s: number, a: HledgerAmount) => s + (a.aquantity?.floatingPoint ?? 0),
@@ -250,8 +250,8 @@ export function extractMonthlyAssetsByGroup(stdout: string): {
 }
 
 export function extractMonthlyAmounts(stdout: string): { months: string[]; amounts: number[] } {
-  const report = JSON.parse(stdout) as HledgerPeriodReport;
-  const r: HledgerPeriodReport = Array.isArray(report) ? report[0] : report;
+  const report = JSON.parse(stdout) as HledgerPeriodReport | HledgerPeriodReport[];
+  const r = Array.isArray(report) ? report[0] : report;
   if (!r?.prDates || !r.prRows) return { months: [], amounts: [] };
   const months = r.prDates.map((dp: { 0?: { contents?: string } }) => {
     const d = dp[0]?.contents || '';
