@@ -188,7 +188,13 @@ export class HledgerDashboardView extends ItemView {
     });
     sampleBtn.addEventListener('click', async () => {
       try {
-        await this.app.vault.adapter.write('sample.journal', SAMPLE_JOURNAL);
+        const samplePath = 'sample.journal';
+        const existing = this.app.vault.getFileByPath(samplePath);
+        if (existing) {
+          await this.app.vault.modify(existing, SAMPLE_JOURNAL);
+        } else {
+          await this.app.vault.create(samplePath, SAMPLE_JOURNAL);
+        }
         this.plugin.settings.journalFile = 'sample.journal';
         await this.plugin.saveSettings();
         this.refresh();
