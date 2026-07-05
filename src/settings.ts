@@ -1,7 +1,6 @@
-import { App, PluginSettingTab, Setting, SuggestModal, TFile } from 'obsidian';
-import HledgerDashboardPlugin from './main';
+import { type App, PluginSettingTab, Setting, SuggestModal, type TFile } from 'obsidian';
 import { HledgerClient } from './hledger/client';
-import { FilterShortcut } from './hledger/types';
+import type HledgerDashboardPlugin from './main';
 
 class JournalFileSuggestModal extends SuggestModal<TFile> {
   private onChoose: (path: string) => void;
@@ -52,23 +51,34 @@ export class HledgerDashboardSettingTab extends PluginSettingTab {
           .onChange(async (val) => {
             this.plugin.settings.hledgerPath = val || 'hledger';
             await this.plugin.saveSettings();
-          })
+          }),
       )
       .addButton((btn) =>
-        btn.setButtonText('Test').setCta().onClick(async () => {
-          btn.setDisabled(true);
-          btn.setButtonText('Testing...');
-          try {
-            const vaultRoot = (this.app.vault.adapter as any).getBasePath();
-            const client = new HledgerClient(vaultRoot);
-            const version = await client.testConnection(this.plugin.settings.hledgerPath);
-            btn.setButtonText(`✓ ${version}`);
-            setTimeout(() => { btn.setButtonText('Test'); btn.setDisabled(false); }, 3000);
-          } catch {
-            btn.setButtonText('✗ Failed');
-            setTimeout(() => { btn.setButtonText('Test'); btn.setDisabled(false); }, 5000);
-          }
-        })
+        btn
+          .setButtonText('Test')
+          .setCta()
+          .onClick(async () => {
+            btn.setDisabled(true);
+            btn.setButtonText('Testing...');
+            try {
+              const vaultRoot = (
+                this.app.vault.adapter as unknown as { getBasePath: () => string }
+              ).getBasePath();
+              const client = new HledgerClient(vaultRoot);
+              const version = await client.testConnection(this.plugin.settings.hledgerPath);
+              btn.setButtonText(`✓ ${version}`);
+              setTimeout(() => {
+                btn.setButtonText('Test');
+                btn.setDisabled(false);
+              }, 3000);
+            } catch {
+              btn.setButtonText('✗ Failed');
+              setTimeout(() => {
+                btn.setButtonText('Test');
+                btn.setDisabled(false);
+              }, 5000);
+            }
+          }),
       );
 
     new Setting(containerEl)
@@ -81,7 +91,7 @@ export class HledgerDashboardSettingTab extends PluginSettingTab {
           .onChange(async (val) => {
             this.plugin.settings.journalFile = val;
             await this.plugin.saveSettings();
-          })
+          }),
       )
       .addButton((btn) =>
         btn.setButtonText('Browse').onClick(() => {
@@ -90,7 +100,7 @@ export class HledgerDashboardSettingTab extends PluginSettingTab {
             this.plugin.saveSettings();
             this.display();
           }).open();
-        })
+        }),
       );
 
     new Setting(containerEl)
@@ -103,20 +113,25 @@ export class HledgerDashboardSettingTab extends PluginSettingTab {
           .onChange(async (val) => {
             this.plugin.settings.targetCurrency = val || 'USD';
             await this.plugin.saveSettings();
-          })
+          }),
       );
 
     new Setting(containerEl)
       .setName('Known currencies')
-      .setDesc('Comma-separated currency symbols used to distinguish cash accounts from investment/stock accounts in the Balance Sheet.')
+      .setDesc(
+        'Comma-separated currency symbols used to distinguish cash accounts from investment/stock accounts in the Balance Sheet.',
+      )
       .addText((text) =>
         text
           .setPlaceholder('USD, $, EUR, GBP')
           .setValue(this.plugin.settings.knownCurrencies.join(', '))
           .onChange(async (val) => {
-            this.plugin.settings.knownCurrencies = val.split(',').map(s => s.trim()).filter(s => s.length > 0);
+            this.plugin.settings.knownCurrencies = val
+              .split(',')
+              .map((s) => s.trim())
+              .filter((s) => s.length > 0);
             await this.plugin.saveSettings();
-          })
+          }),
       );
 
     new Setting(containerEl)
@@ -129,7 +144,7 @@ export class HledgerDashboardSettingTab extends PluginSettingTab {
           .onChange(async (val) => {
             this.plugin.settings.uncategorizedAccount = val;
             await this.plugin.saveSettings();
-          })
+          }),
       );
 
     new Setting(containerEl)
@@ -140,12 +155,12 @@ export class HledgerDashboardSettingTab extends PluginSettingTab {
           .setPlaceholder('50')
           .setValue(String(this.plugin.settings.recentTxnCount))
           .onChange(async (val) => {
-            const n = parseInt(val);
-            if (!isNaN(n) && n > 0) {
+            const n = parseInt(val, 10);
+            if (!Number.isNaN(n) && n > 0) {
               this.plugin.settings.recentTxnCount = n;
               await this.plugin.saveSettings();
             }
-          })
+          }),
       );
 
     new Setting(containerEl)
@@ -158,9 +173,9 @@ export class HledgerDashboardSettingTab extends PluginSettingTab {
           .addOption('ytd', 'Year to Date')
           .setValue(this.plugin.settings.defaultPeriod)
           .onChange(async (val) => {
-            this.plugin.settings.defaultPeriod = val as any;
+            this.plugin.settings.defaultPeriod = val as 'month' | 'quarter' | 'ytd';
             await this.plugin.saveSettings();
-          })
+          }),
       );
 
     containerEl.createEl('h3', { text: 'Filter Shortcuts' });
@@ -174,39 +189,37 @@ export class HledgerDashboardSettingTab extends PluginSettingTab {
       const section = containerEl.createDiv({ cls: 'hldg-shortcut-section' });
       section.createEl('h4', { text: sc.name || `Shortcut ${i + 1}` });
 
-      new Setting(section)
-        .setName('Name')
-        .addText((text) =>
-          text.setValue(sc.name).onChange(async (val) => {
-            this.plugin.settings.filterShortcuts[i].name = val;
-            await this.plugin.saveSettings();
-          })
-        );
+      new Setting(section).setName('Name').addText((text) =>
+        text.setValue(sc.name).onChange(async (val) => {
+          this.plugin.settings.filterShortcuts[i].name = val;
+          await this.plugin.saveSettings();
+        }),
+      );
 
       new Setting(section)
         .setName('Account patterns')
         .setDesc('Comma-separated account patterns (e.g. ^assets:bank:, ^liabilities:)')
         .addText((text) =>
-          text
-            .setValue(sc.accountPatterns.join(', '))
-            .onChange(async (val) => {
-              this.plugin.settings.filterShortcuts[i].accountPatterns =
-                val.split(',').map(s => s.trim()).filter(Boolean);
-              await this.plugin.saveSettings();
-            })
+          text.setValue(sc.accountPatterns.join(', ')).onChange(async (val) => {
+            this.plugin.settings.filterShortcuts[i].accountPatterns = val
+              .split(',')
+              .map((s) => s.trim())
+              .filter(Boolean);
+            await this.plugin.saveSettings();
+          }),
         );
 
       new Setting(section)
         .setName('Currencies')
         .setDesc('Comma-separated currency symbols (e.g. USD, EUR)')
         .addText((text) =>
-          text
-            .setValue(sc.currencies.join(', '))
-            .onChange(async (val) => {
-              this.plugin.settings.filterShortcuts[i].currencies =
-                val.split(',').map(s => s.trim()).filter(Boolean);
-              await this.plugin.saveSettings();
-            })
+          text.setValue(sc.currencies.join(', ')).onChange(async (val) => {
+            this.plugin.settings.filterShortcuts[i].currencies = val
+              .split(',')
+              .map((s) => s.trim())
+              .filter(Boolean);
+            await this.plugin.saveSettings();
+          }),
         );
 
       new Setting(section).addButton((btn) =>
@@ -214,7 +227,7 @@ export class HledgerDashboardSettingTab extends PluginSettingTab {
           this.plugin.settings.filterShortcuts.splice(i, 1);
           await this.plugin.saveSettings();
           this.display();
-        })
+        }),
       );
     }
 
@@ -228,7 +241,7 @@ export class HledgerDashboardSettingTab extends PluginSettingTab {
         });
         await this.plugin.saveSettings();
         this.display();
-      })
+      }),
     );
   }
 }

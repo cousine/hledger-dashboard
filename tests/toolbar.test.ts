@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { buildPresetPeriod, buildCustomPeriod, getDefaultDateValue } from '../src/ui/toolbar';
+import { describe, expect, it } from 'vitest';
+import { buildCustomPeriod, buildPresetPeriod, getDefaultDateValue } from '../src/ui/toolbar';
 
 describe('buildPresetPeriod', () => {
   it('builds a month period', () => {
@@ -45,7 +45,7 @@ describe('buildPresetPeriod', () => {
   });
 
   it('defaults to anchor date for unknown preset', () => {
-    const p = buildPresetPeriod('custom' as any, '2024-06-15');
+    const p = buildPresetPeriod('custom' as DashboardPeriod, '2024-06-15');
     expect(p.startDate).toBe('2024-06-15');
     expect(p.endDate).toBe('2024-06-15');
     expect(p.label).toBe('Custom');

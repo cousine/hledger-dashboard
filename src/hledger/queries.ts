@@ -1,6 +1,6 @@
-import { HledgerClient } from './client';
-import { BalanceEntry, RegisterEntry, DashboardPeriod } from './types';
-import { parseCsvLine, parseAmount, extractFromJson, parseAmounts } from './parse';
+import type { HledgerClient } from './client';
+import { extractFromJson, parseAmount, parseAmounts, parseCsvLine } from './parse';
+import type { BalanceEntry, DashboardPeriod, RegisterEntry } from './types';
 
 export async function getBalances(
   client: HledgerClient,
@@ -9,7 +9,7 @@ export async function getBalances(
   accounts: string[],
   period: DashboardPeriod | null,
   historical: boolean,
-  tree: boolean
+  tree: boolean,
 ): Promise<BalanceEntry[]> {
   const args: string[] = ['balance', ...accounts, '-O', 'json', '--no-total'];
   if (historical) args.push('-H');
@@ -26,7 +26,7 @@ export async function getBalancesFlat(
   journalFile: string,
   accountFilter: string,
   period: DashboardPeriod | null,
-  historical: boolean
+  historical: boolean,
 ): Promise<BalanceEntry[]> {
   const args: string[] = ['balance', accountFilter, '-O', 'json', '--no-total'];
   if (historical) args.push('-H');
@@ -41,7 +41,7 @@ export async function getRegister(
   binaryPath: string,
   journalFile: string,
   accountFilter: string | null,
-  period: DashboardPeriod | null
+  period: DashboardPeriod | null,
 ): Promise<RegisterEntry[]> {
   const args: string[] = ['register'];
   if (accountFilter) args.push(accountFilter);
@@ -49,15 +49,24 @@ export async function getRegister(
   if (period) args.push('-p', period.hledgerPeriod);
 
   const stdout = await client.exec(binaryPath, args, journalFile);
-  const raw: any[] = JSON.parse(stdout || '[]');
+  const raw: unknown[][] = JSON.parse(stdout || '[]');
   const result: RegisterEntry[] = [];
   for (const entry of raw) {
     if (!Array.isArray(entry) || entry.length < 4) continue;
-    const detail = entry[3];
+    const detail = entry[3] as {
+      paccount?: string;
+      pamount?: { aquantity?: { floatingPoint?: number }; acommodity?: string }[];
+    };
     if (!detail || typeof detail !== 'object') continue;
     const parsed = parseAmounts(detail.pamount || []);
     for (const p of parsed) {
-      result.push({ date: entry[0] || '', description: entry[2] || '', account: detail.paccount || '', amount: p.quantity, commodity: p.commodity });
+      result.push({
+        date: (entry[0] as string) || '',
+        description: (entry[2] as string) || '',
+        account: detail.paccount || '',
+        amount: p.quantity,
+        commodity: p.commodity,
+      });
     }
   }
   return result;
@@ -67,9 +76,18 @@ export async function getBalancesWithBudget(
   client: HledgerClient,
   binaryPath: string,
   journalFile: string,
-  period: DashboardPeriod
+  period: DashboardPeriod,
 ): Promise<BalanceEntry[]> {
-  const args: string[] = ['balance', 'expenses:', '--budget', '-p', period.hledgerPeriod, '-O', 'csv', '--no-total'];
+  const args: string[] = [
+    'balance',
+    'expenses:',
+    '--budget',
+    '-p',
+    period.hledgerPeriod,
+    '-O',
+    'csv',
+    '--no-total',
+  ];
   const stdout = await client.exec(binaryPath, args, journalFile);
   const lines = stdout.trim().split('\n');
   if (lines.length < 2) return [];
@@ -108,9 +126,17 @@ export async function getConvertedBalances(
   period: DashboardPeriod | null,
   historical: boolean,
   tree: boolean,
-  conversionCurrency: string
+  conversionCurrency: string,
 ): Promise<BalanceEntry[]> {
-  const args: string[] = ['balance', ...accounts, '-X', conversionCurrency, '-O', 'json', '--no-total'];
+  const args: string[] = [
+    'balance',
+    ...accounts,
+    '-X',
+    conversionCurrency,
+    '-O',
+    'json',
+    '--no-total',
+  ];
   if (historical) args.push('-H');
   if (tree) args.push('--tree');
   if (period) args.push('-p', period.hledgerPeriod);

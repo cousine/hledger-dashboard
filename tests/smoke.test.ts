@@ -1,8 +1,8 @@
-import { describe, it, expect } from 'vitest';
-import { execFile } from 'child_process';
+import { execFile } from 'node:child_process';
+import { describe, expect, it } from 'vitest';
 import { HledgerClient } from '../src/hledger/client';
-import { extractFromJson, extractRegister, extractMonthlyData } from '../src/hledger/parse';
-import { getBalances, getRegister as queryRegister } from '../src/hledger/queries';
+import { extractFromJson, extractMonthlyData, extractRegister } from '../src/hledger/parse';
+import { getBalances } from '../src/hledger/queries';
 
 const runIntegration = !!process.env.RUN_INTEGRATION;
 
@@ -21,7 +21,9 @@ describe.skipIf(!runIntegration)('hledger binary smoke', () => {
         });
       });
     } catch (e) {
-      throw new Error(`hledger not available — set RUN_INTEGRATION=1 only if hledger 1.52+ is installed: ${e}`);
+      throw new Error(
+        `hledger not available — set RUN_INTEGRATION=1 only if hledger 1.52+ is installed: ${e}`,
+      );
     }
   });
 
@@ -45,9 +47,11 @@ describe.skipIf(!runIntegration)('hledger binary smoke', () => {
   });
 
   it('extractFromJson parses live balance output', async () => {
-    const stdout = await client.exec(binaryPath, [
-      'balance', '-O', 'json', '--no-total', '--tree', '-H',
-    ], journalFile);
+    const stdout = await client.exec(
+      binaryPath,
+      ['balance', '-O', 'json', '--no-total', '--tree', '-H'],
+      journalFile,
+    );
     const entries = extractFromJson(stdout);
     expect(entries.length).toBeGreaterThan(0);
     for (const e of entries) {
@@ -57,27 +61,46 @@ describe.skipIf(!runIntegration)('hledger binary smoke', () => {
   });
 
   it('getBalances integration', async () => {
-    const entries = await getBalances(client, binaryPath, journalFile, ['^assets:', '^liabilities:'], null, true, true);
+    const entries = await getBalances(
+      client,
+      binaryPath,
+      journalFile,
+      ['^assets:', '^liabilities:'],
+      null,
+      true,
+      true,
+    );
     expect(entries.length).toBeGreaterThan(0);
   });
 
   it('extractRegister parses live register output', async () => {
-    const stdout = await client.exec(binaryPath, [
-      'register', '-O', 'json', '--depth', '3',
-    ], journalFile);
+    const stdout = await client.exec(
+      binaryPath,
+      ['register', '-O', 'json', '--depth', '3'],
+      journalFile,
+    );
     const entries = extractRegister(stdout);
     expect(entries.length).toBeGreaterThan(0);
     expect(entries[0].date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 
   it('extractMonthlyData parses monthly report', async () => {
-    const stdout = await client.exec(binaryPath, [
-      'balance', '^income:', '^expenses:',
-      '--depth', '1',
-      '--monthly',
-      '-p', '2024-01-01..2024-12-31',
-      '-O', 'json',
-    ], journalFile);
+    const stdout = await client.exec(
+      binaryPath,
+      [
+        'balance',
+        '^income:',
+        '^expenses:',
+        '--depth',
+        '1',
+        '--monthly',
+        '-p',
+        '2024-01-01..2024-12-31',
+        '-O',
+        'json',
+      ],
+      journalFile,
+    );
     const data = extractMonthlyData(stdout);
     expect(data.months.length).toBeGreaterThan(0);
     expect(data.income.length).toBe(data.months.length);

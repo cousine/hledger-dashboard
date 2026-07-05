@@ -1,12 +1,26 @@
 export const PALETTE = [
-  '#9ece6a', '#7dcfff', '#73daca', '#89ddff', '#bb9af7',
-  '#f7768e', '#e0af68', '#ff9e64', '#7aa2f7', '#2ac3de',
-  '#c0caf5', '#b4f9f8',
+  '#9ece6a',
+  '#7dcfff',
+  '#73daca',
+  '#89ddff',
+  '#bb9af7',
+  '#f7768e',
+  '#e0af68',
+  '#ff9e64',
+  '#7aa2f7',
+  '#2ac3de',
+  '#c0caf5',
+  '#b4f9f8',
 ];
 
 export const CONTRAST_PALETTE = [
-  '#f7768e', '#7aa2f7', '#9ece6a', '#e0af68',
-  '#bb9af7', '#73daca', '#ff9e64',
+  '#f7768e',
+  '#7aa2f7',
+  '#9ece6a',
+  '#e0af68',
+  '#bb9af7',
+  '#73daca',
+  '#ff9e64',
 ];
 
 const formatters: Record<string, Intl.NumberFormat> = {};
@@ -34,9 +48,9 @@ export function formatAmountShort(amount: number, commodity: string): string {
   const abs = Math.abs(amount);
   let formatted: string;
   if (abs >= 1_000_000) {
-    formatted = (abs / 1_000_000).toFixed(1) + 'M';
+    formatted = `${(abs / 1_000_000).toFixed(1)}M`;
   } else if (abs >= 1_000) {
-    formatted = (abs / 1_000).toFixed(0) + 'K';
+    formatted = `${(abs / 1_000).toFixed(0)}K`;
   } else {
     formatted = getFormatter(commodity).format(abs);
   }
@@ -53,7 +67,7 @@ export function formatDate(dateStr: string): string {
 }
 
 export function formatPercentage(value: number): string {
-  return value.toFixed(1) + '%';
+  return `${value.toFixed(1)}%`;
 }
 
 export function getColorForAccount(account: string): string {
@@ -62,9 +76,7 @@ export function getColorForAccount(account: string): string {
 }
 
 export function getCSSVar(name: string): string {
-  return getComputedStyle(document.documentElement)
-    .getPropertyValue(name)
-    .trim();
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 }
 
 export function cssColor(name: string, fallback: string): string {

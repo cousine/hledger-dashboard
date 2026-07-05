@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { DEFAULT_SETTINGS, DEFAULT_UI_STATE, defaultTabFilter } from '../../src/hledger/types';
 
 describe('DEFAULT_SETTINGS', () => {

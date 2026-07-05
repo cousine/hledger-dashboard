@@ -1,52 +1,61 @@
-export const BALANCE_JSON_TREE = JSON.stringify([[
-  ["assets", "", 0, [
-    { "acommodity": "$", "aquantity": { "floatingPoint": 15000 } },
-    { "acommodity": "€", "aquantity": { "floatingPoint": 5000 } }
-  ]],
-  ["assets:bank", "", 1, [
-    { "acommodity": "$", "aquantity": { "floatingPoint": 15000 } }
-  ]],
-  ["assets:bank:checking", "", 2, [
-    { "acommodity": "$", "aquantity": { "floatingPoint": 5000 } }
-  ]],
-  ["assets:bank:savings", "", 2, [
-    { "acommodity": "$", "aquantity": { "floatingPoint": 10000 } }
-  ]],
-  ["liabilities", "", 0, [
-    { "acommodity": "$", "aquantity": { "floatingPoint": -500 } }
-  ]],
-  ["liabilities:creditcard", "", 1, [
-    { "acommodity": "$", "aquantity": { "floatingPoint": -500 } }
-  ]]
-]]);
+export const BALANCE_JSON_TREE = JSON.stringify([
+  [
+    [
+      'assets',
+      '',
+      0,
+      [
+        { acommodity: '$', aquantity: { floatingPoint: 15000 } },
+        { acommodity: '€', aquantity: { floatingPoint: 5000 } },
+      ],
+    ],
+    ['assets:bank', '', 1, [{ acommodity: '$', aquantity: { floatingPoint: 15000 } }]],
+    ['assets:bank:checking', '', 2, [{ acommodity: '$', aquantity: { floatingPoint: 5000 } }]],
+    ['assets:bank:savings', '', 2, [{ acommodity: '$', aquantity: { floatingPoint: 10000 } }]],
+    ['liabilities', '', 0, [{ acommodity: '$', aquantity: { floatingPoint: -500 } }]],
+    ['liabilities:creditcard', '', 1, [{ acommodity: '$', aquantity: { floatingPoint: -500 } }]],
+  ],
+]);
 
 export const BALANCE_JSON_EMPTY = '[]';
 
 export const REGISTER_JSON = JSON.stringify([
   [
-    "2024-01-01",
-    "2024-01-01",
-    "Opening balances",
-    { "paccount": "assets:bank:checking", "pamount": [{ "acommodity": "$", "aquantity": { "floatingPoint": 5000 } }] }
+    '2024-01-01',
+    '2024-01-01',
+    'Opening balances',
+    {
+      paccount: 'assets:bank:checking',
+      pamount: [{ acommodity: '$', aquantity: { floatingPoint: 5000 } }],
+    },
   ],
   [
-    "2024-01-01",
-    "2024-01-01",
-    "Opening balances",
-    { "paccount": "assets:bank:savings", "pamount": [{ "acommodity": "$", "aquantity": { "floatingPoint": 10000 } }] }
+    '2024-01-01',
+    '2024-01-01',
+    'Opening balances',
+    {
+      paccount: 'assets:bank:savings',
+      pamount: [{ acommodity: '$', aquantity: { floatingPoint: 10000 } }],
+    },
   ],
   [
-    "2024-06-15",
-    "2024-06-15",
-    "Groceries",
-    { "paccount": "expenses:essentials:groceries", "pamount": [{ "acommodity": "$", "aquantity": { "floatingPoint": -150 } }] }
+    '2024-06-15',
+    '2024-06-15',
+    'Groceries',
+    {
+      paccount: 'expenses:essentials:groceries',
+      pamount: [{ acommodity: '$', aquantity: { floatingPoint: -150 } }],
+    },
   ],
   [
-    "2024-06-15",
-    "2024-06-15",
-    "Groceries",
-    { "paccount": "assets:bank:checking", "pamount": [{ "acommodity": "$", "aquantity": { "floatingPoint": 150 } }] }
-  ]
+    '2024-06-15',
+    '2024-06-15',
+    'Groceries',
+    {
+      paccount: 'assets:bank:checking',
+      pamount: [{ acommodity: '$', aquantity: { floatingPoint: 150 } }],
+    },
+  ],
 ]);
 
 export const REGISTER_JSON_EMPTY = '[]';
@@ -65,128 +74,125 @@ export const BUDGET_CSV_EMPTY = `"account","actual"
 
 export const MONTHLY_REPORT_JSON = JSON.stringify([
   {
-    "prDates": [
-      [{ "contents": "2024-01-01" }],
-      [{ "contents": "2024-02-01" }]
-    ],
-    "prRows": [
+    prDates: [[{ contents: '2024-01-01' }], [{ contents: '2024-02-01' }]],
+    prRows: [
       {
-        "prrName": "income",
-        "prrAmounts": [
-          [{ "acommodity": "$", "aquantity": { "floatingPoint": 5000 } }],
-          [{ "acommodity": "$", "aquantity": { "floatingPoint": 5000 } }]
-        ]
+        prrName: 'income',
+        prrAmounts: [
+          [{ acommodity: '$', aquantity: { floatingPoint: 5000 } }],
+          [{ acommodity: '$', aquantity: { floatingPoint: 5000 } }],
+        ],
       },
       {
-        "prrName": "expenses",
-        "prrAmounts": [
-          [{ "acommodity": "$", "aquantity": { "floatingPoint": 2000 } }],
-          [{ "acommodity": "$", "aquantity": { "floatingPoint": 2500 } }]
-        ]
-      }
-    ]
-  }
+        prrName: 'expenses',
+        prrAmounts: [
+          [{ acommodity: '$', aquantity: { floatingPoint: 2000 } }],
+          [{ acommodity: '$', aquantity: { floatingPoint: 2500 } }],
+        ],
+      },
+    ],
+  },
 ]);
 
 export const MONTHLY_BUDGET_REPORT_JSON = JSON.stringify([
   {
-    "prDates": [
-      [{ "contents": "2024-01-01" }],
-      [{ "contents": "2024-02-01" }]
+    prDates: [[{ contents: '2024-01-01' }], [{ contents: '2024-02-01' }]],
+    prRows: [
+      {
+        prrName: 'income',
+        prrAmounts: [
+          [{ acommodity: '$', aquantity: { floatingPoint: 5000 } }],
+          [{ acommodity: '$', aquantity: { floatingPoint: 5000 } }],
+        ],
+      },
+      {
+        prrName: 'expenses',
+        prrAmounts: [
+          [{ acommodity: '$', aquantity: { floatingPoint: 2000 } }],
+          [{ acommodity: '$', aquantity: { floatingPoint: 2500 } }],
+        ],
+      },
+      {
+        prrName: 'liabilities',
+        prrAmounts: [
+          [{ acommodity: '$', aquantity: { floatingPoint: -100 } }],
+          [{ acommodity: '$', aquantity: { floatingPoint: -100 } }],
+        ],
+      },
     ],
-    "prRows": [
-      {
-        "prrName": "income",
-        "prrAmounts": [
-          [{ "acommodity": "$", "aquantity": { "floatingPoint": 5000 } }],
-          [{ "acommodity": "$", "aquantity": { "floatingPoint": 5000 } }]
-        ]
-      },
-      {
-        "prrName": "expenses",
-        "prrAmounts": [
-          [{ "acommodity": "$", "aquantity": { "floatingPoint": 2000 } }],
-          [{ "acommodity": "$", "aquantity": { "floatingPoint": 2500 } }]
-        ]
-      },
-      {
-        "prrName": "liabilities",
-        "prrAmounts": [
-          [{ "acommodity": "$", "aquantity": { "floatingPoint": -100 } }],
-          [{ "acommodity": "$", "aquantity": { "floatingPoint": -100 } }]
-        ]
-      }
-    ]
-  }
+  },
 ]);
 
 export const MONTHLY_ASSETS_JSON = JSON.stringify([
   {
-    "prDates": [
-      [{ "contents": "2024-01-01" }],
-      [{ "contents": "2024-02-01" }]
+    prDates: [[{ contents: '2024-01-01' }], [{ contents: '2024-02-01' }]],
+    prRows: [
+      {
+        prrName: 'assets:bank:checking',
+        prrAmounts: [
+          [{ acommodity: '$', aquantity: { floatingPoint: 5000 } }],
+          [{ acommodity: '$', aquantity: { floatingPoint: 4500 } }],
+        ],
+      },
+      {
+        prrName: 'assets:bank:savings',
+        prrAmounts: [
+          [{ acommodity: '$', aquantity: { floatingPoint: 10000 } }],
+          [{ acommodity: '$', aquantity: { floatingPoint: 10500 } }],
+        ],
+      },
+      {
+        prrName: 'assets:investment',
+        prrAmounts: [
+          [{ acommodity: '€', aquantity: { floatingPoint: 5000 } }],
+          [{ acommodity: '€', aquantity: { floatingPoint: 5000 } }],
+        ],
+      },
     ],
-    "prRows": [
-      {
-        "prrName": "assets:bank:checking",
-        "prrAmounts": [
-          [{ "acommodity": "$", "aquantity": { "floatingPoint": 5000 } }],
-          [{ "acommodity": "$", "aquantity": { "floatingPoint": 4500 } }]
-        ]
-      },
-      {
-        "prrName": "assets:bank:savings",
-        "prrAmounts": [
-          [{ "acommodity": "$", "aquantity": { "floatingPoint": 10000 } }],
-          [{ "acommodity": "$", "aquantity": { "floatingPoint": 10500 } }]
-        ]
-      },
-      {
-        "prrName": "assets:investment",
-        "prrAmounts": [
-          [{ "acommodity": "€", "aquantity": { "floatingPoint": 5000 } }],
-          [{ "acommodity": "€", "aquantity": { "floatingPoint": 5000 } }]
-        ]
-      }
-    ]
-  }
+  },
 ]);
 
 export const MONTHLY_BALANCE_SHEET_JSON = JSON.stringify([
   {
-    "prDates": [
-      [{ "contents": "2024-01-01" }],
-      [{ "contents": "2024-02-01" }]
-    ],
-    "prRows": [
+    prDates: [[{ contents: '2024-01-01' }], [{ contents: '2024-02-01' }]],
+    prRows: [
       {
-        "prrName": "assets:bank",
-        "prrAmounts": [
-          [{ "acommodity": "$", "aquantity": { "floatingPoint": 15000 } }],
-          [{ "acommodity": "$", "aquantity": { "floatingPoint": 14000 } }]
-        ]
+        prrName: 'assets:bank',
+        prrAmounts: [
+          [{ acommodity: '$', aquantity: { floatingPoint: 15000 } }],
+          [{ acommodity: '$', aquantity: { floatingPoint: 14000 } }],
+        ],
       },
       {
-        "prrName": "liabilities:creditcard",
-        "prrAmounts": [
-          [{ "acommodity": "$", "aquantity": { "floatingPoint": -500 } }],
-          [{ "acommodity": "$", "aquantity": { "floatingPoint": -700 } }]
-        ]
-      }
-    ]
-  }
+        prrName: 'liabilities:creditcard',
+        prrAmounts: [
+          [{ acommodity: '$', aquantity: { floatingPoint: -500 } }],
+          [{ acommodity: '$', aquantity: { floatingPoint: -700 } }],
+        ],
+      },
+    ],
+  },
 ]);
 
 export const PRINT_TRANSFERS_JSON = JSON.stringify([
   {
-    "tdate": "2024-03-01",
-    "tdescription": "Transfer to savings",
-    "tpostings": [
-      { "paccount": "assets:bank:savings", "pamount": [{ "acommodity": "$", "aquantity": { "floatingPoint": 500 } }] },
-      { "paccount": "assets:bank:checking", "pamount": [{ "acommodity": "$", "aquantity": { "floatingPoint": -500 } }] },
-      { "paccount": "equity:transfer", "pamount": [{ "acommodity": "$", "aquantity": { "floatingPoint": 0 } }] }
-    ]
-  }
+    tdate: '2024-03-01',
+    tdescription: 'Transfer to savings',
+    tpostings: [
+      {
+        paccount: 'assets:bank:savings',
+        pamount: [{ acommodity: '$', aquantity: { floatingPoint: 500 } }],
+      },
+      {
+        paccount: 'assets:bank:checking',
+        pamount: [{ acommodity: '$', aquantity: { floatingPoint: -500 } }],
+      },
+      {
+        paccount: 'equity:transfer',
+        pamount: [{ acommodity: '$', aquantity: { floatingPoint: 0 } }],
+      },
+    ],
+  },
 ]);
 
 export const STATS_OUTPUT = `Journal
@@ -218,12 +224,17 @@ equity
   opening-balances
 `;
 
-export const BALANCE_FLAT_MULTI_COMMODITY = JSON.stringify([[
-  ["assets:bank:checking", "", 2, [
-    { "acommodity": "$", "aquantity": { "floatingPoint": 5000 } },
-    { "acommodity": "€", "aquantity": { "floatingPoint": 0 } }
-  ]],
-  ["assets:bank:savings", "", 2, [
-    { "acommodity": "$", "aquantity": { "floatingPoint": 10000 } }
-  ]]
-]]);
+export const BALANCE_FLAT_MULTI_COMMODITY = JSON.stringify([
+  [
+    [
+      'assets:bank:checking',
+      '',
+      2,
+      [
+        { acommodity: '$', aquantity: { floatingPoint: 5000 } },
+        { acommodity: '€', aquantity: { floatingPoint: 0 } },
+      ],
+    ],
+    ['assets:bank:savings', '', 2, [{ acommodity: '$', aquantity: { floatingPoint: 10000 } }]],
+  ],
+]);

@@ -1,13 +1,13 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
+  commodityList,
+  groupByCommodity,
   groupByDepth,
   groupByTopLevel,
-  sumGroup,
   sumAll,
-  groupByCommodity,
-  commodityList,
+  sumGroup,
 } from '../src/currency';
-import { BalanceEntry } from '../src/hledger/types';
+import type { BalanceEntry } from '../src/hledger/types';
 
 const entries: BalanceEntry[] = [
   { account: 'assets:bank:checking', amount: 5000, commodity: '$', depth: 2 },
@@ -21,7 +21,7 @@ describe('groupByDepth', () => {
     const groups = groupByDepth(entries, 1);
     expect(groups.has('assets:bank')).toBe(true);
     expect(groups.has('liabilities:creditcard')).toBe(true);
-    expect(groups.get('assets:bank')!.length).toBe(2);
+    expect(groups.get('assets:bank')?.length).toBe(2);
   });
 
   it('skips entries with undefined depth', () => {
@@ -33,9 +33,7 @@ describe('groupByDepth', () => {
   });
 
   it('skips accounts shallower than target depth + 1', () => {
-    const shallow: BalanceEntry[] = [
-      { account: 'assets', amount: 0, commodity: '$', depth: 0 },
-    ];
+    const shallow: BalanceEntry[] = [{ account: 'assets', amount: 0, commodity: '$', depth: 0 }];
     expect(groupByDepth(shallow, 1).size).toBe(0);
   });
 });
@@ -45,7 +43,7 @@ describe('groupByTopLevel', () => {
     const groups = groupByTopLevel(entries);
     expect(groups.has('assets')).toBe(true);
     expect(groups.has('liabilities')).toBe(true);
-    expect(groups.get('assets')!.length).toBe(3);
+    expect(groups.get('assets')?.length).toBe(3);
   });
 });
 
@@ -74,8 +72,8 @@ describe('groupByCommodity', () => {
     const groups = groupByCommodity(entries);
     expect(groups.has('$')).toBe(true);
     expect(groups.has('€')).toBe(true);
-    expect(groups.get('$')!.length).toBe(3);
-    expect(groups.get('€')!.length).toBe(1);
+    expect(groups.get('$')?.length).toBe(3);
+    expect(groups.get('€')?.length).toBe(1);
   });
 });
 

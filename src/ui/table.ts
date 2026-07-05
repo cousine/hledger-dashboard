@@ -4,7 +4,10 @@ export interface Column {
   width?: string;
 }
 
-export type Row = (string | { text: string; cls?: string; sortValue?: string | number; onClick?: () => void })[];
+export type Row = (
+  | string
+  | { text: string; cls?: string; sortValue?: string | number; onClick?: () => void }
+)[];
 
 export function sortRows(rows: Row[], sortCol: number, sortAsc: boolean): Row[] {
   if (sortCol < 0) return rows;
@@ -14,7 +17,7 @@ export function sortRows(rows: Row[], sortCol: number, sortAsc: boolean): Row[] 
     let cmp: number;
     const an = typeof av === 'number' ? av : parseFloat(String(av).replace(/[^0-9.-]/g, ''));
     const bn = typeof bv === 'number' ? bv : parseFloat(String(bv).replace(/[^0-9.-]/g, ''));
-    if (!isNaN(an) && !isNaN(bn)) {
+    if (!Number.isNaN(an) && !Number.isNaN(bn)) {
       cmp = an - bn;
     } else {
       cmp = String(av ?? '').localeCompare(String(bv ?? ''), undefined, { sensitivity: 'base' });
@@ -23,7 +26,11 @@ export function sortRows(rows: Row[], sortCol: number, sortAsc: boolean): Row[] 
   });
 }
 
-export function getPaginationInfo(totalItems: number, pageSize: number, currentPage: number): { totalPages: number; currentPage: number; startIdx: number; endIdx: number } {
+export function getPaginationInfo(
+  totalItems: number,
+  pageSize: number,
+  currentPage: number,
+): { totalPages: number; currentPage: number; startIdx: number; endIdx: number } {
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
   const clampedPage = Math.min(currentPage, totalPages - 1);
   const startIdx = clampedPage * pageSize;
@@ -45,10 +52,10 @@ export function buildTable(
   rows: Row[],
   totalRows?: Row[],
   sortState?: { col: number; asc: boolean },
-  onSortChange?: (col: number) => void
+  onSortChange?: (col: number) => void,
 ): HTMLTableElement {
   const table = container.createEl('table', { cls: 'hldg-table' });
-  const hasWidth = columns.some(c => c.width);
+  const hasWidth = columns.some((c) => c.width);
   if (hasWidth) table.style.tableLayout = 'fixed';
   const thead = table.createEl('thead');
   const headerRow = thead.createEl('tr');
@@ -86,7 +93,8 @@ export function buildTable(
         }
         if (columns[ci]?.align === 'right') td.style.textAlign = 'right';
         else if (columns[ci]?.align === 'center') td.style.textAlign = 'center';
-        if (columns[ci]?.width) td.style.width = columns[ci].width!;
+        const colWidth = columns[ci]?.width;
+        if (colWidth) td.style.width = colWidth;
       }
     }
 
@@ -111,7 +119,8 @@ export function buildTable(
           }
           if (columns[ci]?.align === 'right') td.style.textAlign = 'right';
           else if (columns[ci]?.align === 'center') td.style.textAlign = 'center';
-          if (columns[ci]?.width) td.style.width = columns[ci].width!;
+          const cellWidth = columns[ci]?.width;
+          if (cellWidth) td.style.width = cellWidth;
         }
       }
     }
@@ -161,7 +170,7 @@ export function createPaginatedTable(
   columns: Column[],
   rows: Row[],
   pageSize: number,
-  totalRows?: Row[]
+  totalRows?: Row[],
 ): { setRows: (rows: Row[]) => void; destroy: () => void } {
   const wrapper = container.createDiv();
   let sortCol = -1;
@@ -179,7 +188,11 @@ export function createPaginatedTable(
     const totalPages = pg.totalPages;
     const pageRows = sorted.slice(pg.startIdx, pg.endIdx);
 
-    buildTable(wrapper, columns, pageRows, totalRows,
+    buildTable(
+      wrapper,
+      columns,
+      pageRows,
+      totalRows,
       { col: sortCol, asc: sortAsc },
       (col: number) => {
         if (sortCol === col) {
@@ -190,7 +203,7 @@ export function createPaginatedTable(
         }
         currentPage = 0;
         render();
-      }
+      },
     );
 
     if (totalPages > 1) {
@@ -198,11 +211,19 @@ export function createPaginatedTable(
 
       const firstBtn = nav.createEl('button', { cls: 'hldg-page-btn', text: '<< First' });
       firstBtn.disabled = currentPage === 0;
-      firstBtn.addEventListener('click', () => { currentPage = 0; render(); });
+      firstBtn.addEventListener('click', () => {
+        currentPage = 0;
+        render();
+      });
 
       const prevBtn = nav.createEl('button', { cls: 'hldg-page-btn', text: '‹ Prev' });
       prevBtn.disabled = currentPage === 0;
-      prevBtn.addEventListener('click', () => { if (currentPage > 0) { currentPage--; render(); } });
+      prevBtn.addEventListener('click', () => {
+        if (currentPage > 0) {
+          currentPage--;
+          render();
+        }
+      });
 
       nav.createSpan({
         cls: 'hldg-page-info',
@@ -211,11 +232,19 @@ export function createPaginatedTable(
 
       const nextBtn = nav.createEl('button', { cls: 'hldg-page-btn', text: 'Next ›' });
       nextBtn.disabled = currentPage >= totalPages - 1;
-      nextBtn.addEventListener('click', () => { if (currentPage < totalPages - 1) { currentPage++; render(); } });
+      nextBtn.addEventListener('click', () => {
+        if (currentPage < totalPages - 1) {
+          currentPage++;
+          render();
+        }
+      });
 
       const lastBtn = nav.createEl('button', { cls: 'hldg-page-btn', text: 'Last >>' });
       lastBtn.disabled = currentPage >= totalPages - 1;
-      lastBtn.addEventListener('click', () => { currentPage = totalPages - 1; render(); });
+      lastBtn.addEventListener('click', () => {
+        currentPage = totalPages - 1;
+        render();
+      });
     }
   }
 

@@ -7,7 +7,7 @@ export function renderTabBar(
   container: HTMLElement,
   tabs: TabItem[],
   activeId: string,
-  onSwitch: (id: string) => void
+  onSwitch: (id: string) => void,
 ): HTMLElement {
   const bar = container.createDiv({ cls: 'hldg-tab-bar' });
   for (const tab of tabs) {
@@ -17,7 +17,9 @@ export function renderTabBar(
     });
     btn.addEventListener('click', (e) => {
       e.preventDefault();
-      bar.querySelectorAll('.hldg-tab').forEach((b) => b.removeClass('hldg-tab-active'));
+      bar.querySelectorAll('.hldg-tab').forEach((b) => {
+        b.removeClass('hldg-tab-active');
+      });
       btn.addClass('hldg-tab-active');
       onSwitch(tab.id);
     });

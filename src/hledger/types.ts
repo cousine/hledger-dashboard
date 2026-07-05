@@ -15,11 +15,11 @@ export interface FilterShortcut {
 }
 
 export interface DashboardPeriod {
-  startDate: string;   // YYYY-MM-DD
-  endDate: string;     // YYYY-MM-DD
+  startDate: string; // YYYY-MM-DD
+  endDate: string; // YYYY-MM-DD
   preset: 'month' | 'quarter' | 'ytd' | 'custom';
   label: string;
-  hledgerPeriod: string;  // "startDate..endDate"
+  hledgerPeriod: string; // "startDate..endDate"
 }
 
 export interface BalanceEntry {

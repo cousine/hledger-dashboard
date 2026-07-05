@@ -1,17 +1,17 @@
 import {
-  Chart,
+  ArcElement,
   BarController,
   BarElement,
   CategoryScale,
-  LinearScale,
-  Tooltip,
-  Legend,
-  ArcElement,
+  Chart,
   DoughnutController,
+  Filler,
+  Legend,
+  LinearScale,
   LineController,
   LineElement,
   PointElement,
-  Filler,
+  Tooltip,
 } from 'chart.js';
 import { TreemapController, TreemapElement } from 'chartjs-chart-treemap';
 
@@ -29,7 +29,7 @@ Chart.register(
   Tooltip,
   Legend,
   TreemapController,
-  TreemapElement
+  TreemapElement,
 );
 
 const activeCharts = new Map<HTMLElement, Chart>();
@@ -43,7 +43,7 @@ export function destroyChart(container: HTMLElement): void {
 }
 
 export function destroyAllCharts(): void {
-  for (const [el, chart] of activeCharts) {
+  for (const [_el, chart] of activeCharts) {
     chart.destroy();
   }
   activeCharts.clear();
@@ -57,7 +57,7 @@ export function createBarChart(
     data: number[];
     backgroundColor: string | string[];
     borderColor?: string | string[];
-  }[]
+  }[],
 ): Chart {
   destroyChart(container);
 
@@ -113,7 +113,7 @@ export function createDoughnutChart(
   container: HTMLElement,
   labels: string[],
   data: number[],
-  backgroundColor: string[]
+  backgroundColor: string[],
 ): Chart {
   destroyChart(container);
 
@@ -141,8 +141,8 @@ export function createDoughnutChart(
           borderColor: getCSSColor('--background-modifier-border'),
           borderWidth: 1,
           callbacks: {
-            label(ctx: any) {
-              const total = (ctx.dataset.data as number[]).reduce((a: number, b: number) => a + b, 0);
+            label(ctx: { label: string; parsed: number; dataset: { data: number[] } }) {
+              const total = ctx.dataset.data.reduce((a: number, b: number) => a + b, 0);
               const pct = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : '0';
               return ` ${ctx.label}: ${ctx.parsed.toLocaleString()} (${pct}%)`;
             },
@@ -166,7 +166,7 @@ export function createLineChart(
     backgroundColor?: string;
     fill?: boolean;
     borderDash?: number[];
-  }[]
+  }[],
 ): Chart {
   destroyChart(container);
 
@@ -177,11 +177,11 @@ export function createLineChart(
     type: 'line',
     data: {
       labels,
-      datasets: datasets.map(d => ({
+      datasets: datasets.map((d) => ({
         label: d.label,
         data: d.data,
         borderColor: d.borderColor,
-        backgroundColor: d.backgroundColor || d.borderColor + '33',
+        backgroundColor: d.backgroundColor || `${d.borderColor}33`,
         fill: d.fill ?? false,
         tension: 0.3,
         pointRadius: d.borderDash ? 2 : 4,
@@ -225,7 +225,7 @@ export function createLineChart(
 
 export function createTreemapChart(
   container: HTMLElement,
-  data: { label: string; value: number; backgroundColor: string }[]
+  data: { label: string; value: number; backgroundColor: string }[],
 ): Chart {
   destroyChart(container);
 
@@ -237,19 +237,24 @@ export function createTreemapChart(
     data: {
       datasets: [
         {
+          type: 'treemap' as const,
+          data: [],
           tree: data,
           key: 'value',
           groups: ['label'],
           labels: {
             display: true,
-            formatter(ctx: any) {
-              return ctx.raw.label;
+            formatter(ctx: object) {
+              return (ctx as { raw: { label: string } }).raw.label;
             },
             color: '#ffffff',
             font: { size: 11 },
           },
-          backgroundColor(ctx: any) {
-            return ctx.raw.backgroundColor || 'rgba(0,0,0,0.2)';
+          backgroundColor(ctx: object) {
+            return (
+              (ctx as { raw: { backgroundColor?: string } }).raw.backgroundColor ||
+              'rgba(0,0,0,0.2)'
+            );
           },
           borderWidth: 1,
           borderColor: 'rgba(255,255,255,0.15)',
@@ -264,8 +269,8 @@ export function createTreemapChart(
         legend: { display: false },
         tooltip: {
           callbacks: {
-            label(ctx: any) {
-              const raw = ctx.raw;
+            label(ctx: object) {
+              const raw = (ctx as { raw: { label: string; value: number } }).raw;
               return `${raw.label}: ${raw.value.toLocaleString()}`;
             },
           },
@@ -289,8 +294,6 @@ const CSS_FALLBACKS: Record<string, string> = {
 };
 
 function getCSSColor(variable: string): string {
-  const val = getComputedStyle(document.body)
-    .getPropertyValue(variable)
-    .trim();
+  const val = getComputedStyle(document.body).getPropertyValue(variable).trim();
   return val || CSS_FALLBACKS[variable] || '#c0caf5';
 }

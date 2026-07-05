@@ -1,12 +1,12 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  matchPattern,
   applyCurrencyFilter,
-  isEmptyFilter,
   buildHledgerAccountArgs,
+  isEmptyFilter,
+  matchPattern,
   shouldDropDepth,
 } from '../src/filters';
-import { BalanceEntry, TabFilterState } from '../src/hledger/types';
+import type { BalanceEntry } from '../src/hledger/types';
 
 describe('matchPattern', () => {
   it('matches ^ prefix pattern', () => {
@@ -63,11 +63,15 @@ describe('isEmptyFilter', () => {
 
 describe('buildHledgerAccountArgs', () => {
   it('returns defaults when filter is empty', () => {
-    expect(buildHledgerAccountArgs({ accountPatterns: [], currencies: [] }, ['^assets:'])).toEqual(['^assets:']);
+    expect(buildHledgerAccountArgs({ accountPatterns: [], currencies: [] }, ['^assets:'])).toEqual([
+      '^assets:',
+    ]);
   });
 
   it('returns filter patterns when present', () => {
-    expect(buildHledgerAccountArgs({ accountPatterns: ['foo', 'bar'], currencies: [] }, ['^assets:'])).toEqual(['foo', 'bar']);
+    expect(
+      buildHledgerAccountArgs({ accountPatterns: ['foo', 'bar'], currencies: [] }, ['^assets:']),
+    ).toEqual(['foo', 'bar']);
   });
 });
 

@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { getCellValue, sortRows, getPaginationInfo, Row } from '../../src/ui/table';
+import { describe, expect, it } from 'vitest';
+import { getCellValue, getPaginationInfo, type Row, sortRows } from '../../src/ui/table';
 
 describe('getCellValue', () => {
   it('returns sortValue from object cells', () => {
@@ -40,11 +40,7 @@ describe('sortRows', () => {
   });
 
   it('sorts strings case-insensitively', () => {
-    const rows: Row[] = [
-      ['Banana'],
-      ['apple'],
-      ['Cherry'],
-    ];
+    const rows: Row[] = [['Banana'], ['apple'], ['Cherry']];
     const sorted = sortRows(rows, 0, true);
     expect(sorted[0][0]).toBe('apple');
     expect(sorted[1][0]).toBe('Banana');
@@ -52,11 +48,7 @@ describe('sortRows', () => {
   });
 
   it('parses numeric strings for numeric comparison', () => {
-    const rows: Row[] = [
-      ['$1,000'],
-      ['$200'],
-      ['$50'],
-    ];
+    const rows: Row[] = [['$1,000'], ['$200'], ['$50']];
     const sorted = sortRows(rows, 0, true);
     expect(sorted[0][0]).toBe('$50');
     expect(sorted[2][0]).toBe('$1,000');

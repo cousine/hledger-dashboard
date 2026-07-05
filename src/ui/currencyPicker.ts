@@ -2,7 +2,7 @@ export function buildCurrencyContent(
   panel: HTMLElement,
   commodities: string[],
   selected: Set<string>,
-  onChange?: () => void
+  onChange?: () => void,
 ): void {
   const btnRow = panel.createDiv({ cls: 'hldg-dd-btn-row' });
   const handleChange = () => {
@@ -11,7 +11,9 @@ export function buildCurrencyContent(
   };
 
   btnRow.createEl('button', { text: 'All', cls: 'hldg-dd-btn' }).addEventListener('click', () => {
-    commodities.forEach(c => selected.add(c));
+    commodities.forEach((c) => {
+      selected.add(c);
+    });
     handleChange();
   });
   btnRow.createEl('button', { text: 'None', cls: 'hldg-dd-btn' }).addEventListener('click', () => {

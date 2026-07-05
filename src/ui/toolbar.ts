@@ -1,4 +1,4 @@
-import { DashboardPeriod } from '../hledger/types';
+import type { DashboardPeriod } from '../hledger/types';
 
 export interface ToolbarState {
   period: DashboardPeriod;
@@ -6,7 +6,9 @@ export interface ToolbarState {
   selectedYear?: string;
 }
 
-function pad2(n: number): string { return String(n).padStart(2, '0'); }
+function pad2(n: number): string {
+  return String(n).padStart(2, '0');
+}
 
 function lastDayOfMonth(year: number, month: number): number {
   return new Date(year, month, 0).getDate();
@@ -14,7 +16,7 @@ function lastDayOfMonth(year: number, month: number): number {
 
 export function buildPresetPeriod(
   preset: DashboardPeriod['preset'],
-  anchorDate: string // YYYY-MM-DD
+  anchorDate: string, // YYYY-MM-DD
 ): DashboardPeriod {
   const [y, m, d] = anchorDate.split('-').map(Number);
   let startDate: string, endDate: string, label: string;
@@ -23,7 +25,20 @@ export function buildPresetPeriod(
     case 'month': {
       startDate = `${y}-${pad2(m)}-01`;
       endDate = `${y}-${pad2(m)}-${pad2(lastDayOfMonth(y, m))}`;
-      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
+      ];
       label = `${months[m - 1]} ${y}`;
       break;
     }
@@ -75,7 +90,7 @@ export function buildToolbar(
     onPeriodChange: (period: DashboardPeriod) => void;
     onRefresh: () => void;
     onYearChange: (year: string) => void;
-  }
+  },
 ): { refreshBtn: HTMLButtonElement; errorEl: HTMLElement } {
   const toolbar = container.createDiv({ cls: 'hldg-toolbar' });
 
@@ -88,10 +103,16 @@ export function buildToolbar(
     yearBtn.createSpan({ text: selYear || 'All Years' });
     yearBtn.createSpan({ cls: 'hldg-year-arrow', text: '⌄' });
     const yearPanel = yearWrap.createDiv({ cls: 'hldg-year-panel' });
-    const allOpt = yearPanel.createDiv({ cls: `hldg-year-opt${!selYear ? ' hldg-year-opt-active' : ''}`, text: 'All Years' });
+    const allOpt = yearPanel.createDiv({
+      cls: `hldg-year-opt${!selYear ? ' hldg-year-opt-active' : ''}`,
+      text: 'All Years',
+    });
     allOpt.dataset.year = '';
     for (const y of state.availableYears) {
-      const opt = yearPanel.createDiv({ cls: `hldg-year-opt${selYear === String(y) ? ' hldg-year-opt-active' : ''}`, text: String(y) });
+      const opt = yearPanel.createDiv({
+        cls: `hldg-year-opt${selYear === String(y) ? ' hldg-year-opt-active' : ''}`,
+        text: String(y),
+      });
       opt.dataset.year = String(y);
     }
     yearBtn.addEventListener('click', (e) => {
@@ -99,13 +120,15 @@ export function buildToolbar(
       yearPanel.classList.toggle('hldg-year-panel-open');
     });
     const closePanel = () => yearPanel.classList.remove('hldg-year-panel-open');
-    yearPanel.querySelectorAll('.hldg-year-opt').forEach(opt => {
+    yearPanel.querySelectorAll('.hldg-year-opt').forEach((opt) => {
       opt.addEventListener('click', (e) => {
         e.stopPropagation();
-        yearPanel.querySelectorAll('.hldg-year-opt').forEach(o => o.classList.remove('hldg-year-opt-active'));
+        yearPanel.querySelectorAll('.hldg-year-opt').forEach((o) => {
+          o.classList.remove('hldg-year-opt-active');
+        });
         opt.classList.add('hldg-year-opt-active');
-        const label = yearBtn.querySelector('span:first-child')!;
-        label.textContent = (opt as HTMLElement).dataset.year || 'All Years';
+        const label = yearBtn.querySelector('span:first-child');
+        if (label) label.textContent = (opt as HTMLElement).dataset.year || 'All Years';
         closePanel();
         const activePill = periodGroup.querySelector('.hldg-pill-active') as HTMLElement;
         if (activePill) positionSlider(activePill);
@@ -120,7 +143,9 @@ export function buildToolbar(
     if (state.period.preset === preset) btn.addClass('hldg-pill-active');
     btn.addEventListener('click', (e) => {
       e.preventDefault();
-      periodGroup.querySelectorAll('.hldg-pill').forEach(b => b.removeClass('hldg-pill-active'));
+      periodGroup.querySelectorAll('.hldg-pill').forEach((b) => {
+        b.removeClass('hldg-pill-active');
+      });
       btn.addClass('hldg-pill-active');
       positionSlider(btn);
       const newPeriod = buildPresetPeriod(preset, getDefaultDateValue());
@@ -158,7 +183,9 @@ export function buildToolbar(
   endInput.value = state.period.endDate;
 
   const applyRange = () => {
-    periodGroup.querySelectorAll('.hldg-pill').forEach(b => b.removeClass('hldg-pill-active'));
+    periodGroup.querySelectorAll('.hldg-pill').forEach((b) => {
+      b.removeClass('hldg-pill-active');
+    });
     const newPeriod = buildCustomPeriod(startInput.value, endInput.value);
     callbacks.onPeriodChange(newPeriod);
   };
