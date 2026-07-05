@@ -193,7 +193,7 @@ export function buildToolbar(
   startInput.addEventListener('change', applyRange);
   endInput.addEventListener('change', applyRange);
 
-  const refreshBtn = toolbar.createEl('button', { cls: 'hldg-toolbar-refresh', text: '↻ Refresh' });
+  const refreshBtn = toolbar.createEl('button', { cls: 'hldg-toolbar-refresh', text: '↻ refresh' });
   refreshBtn.addEventListener('click', () => {
     void callbacks.onRefresh();
   });

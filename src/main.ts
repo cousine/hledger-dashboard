@@ -16,13 +16,13 @@ export default class HledgerDashboardPlugin extends Plugin {
 
     this.registerView(VIEW_TYPE_HLEDGER_DASHBOARD, (leaf) => new HledgerDashboardView(leaf, this));
 
-    this.addRibbonIcon('dollar-sign', 'Open hledger Dashboard', () => {
+    this.addRibbonIcon('dollar-sign', 'Open hledger dashboard', () => {
       void this.activateView();
     });
 
     this.addCommand({
       id: 'open',
-      name: 'Open Dashboard',
+      name: 'Open dashboard',
       callback: () => {
         void this.activateView();
       },
@@ -30,7 +30,7 @@ export default class HledgerDashboardPlugin extends Plugin {
 
     this.addCommand({
       id: 'refresh',
-      name: 'Refresh Dashboard',
+      name: 'Refresh dashboard',
       callback: () => {
         const leaf = this.app.workspace.getLeavesOfType(VIEW_TYPE_HLEDGER_DASHBOARD).first();
         if (leaf?.view instanceof HledgerDashboardView) {

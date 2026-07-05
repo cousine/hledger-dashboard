@@ -211,14 +211,14 @@ export function createPaginatedTable(
     if (totalPages > 1) {
       const nav = wrapper.createDiv({ cls: 'hldg-pagination' });
 
-      const firstBtn = nav.createEl('button', { cls: 'hldg-page-btn', text: '<< First' });
+      const firstBtn = nav.createEl('button', { cls: 'hldg-page-btn', text: '<< first' });
       firstBtn.disabled = currentPage === 0;
       firstBtn.addEventListener('click', () => {
         currentPage = 0;
         render();
       });
 
-      const prevBtn = nav.createEl('button', { cls: 'hldg-page-btn', text: '‹ Prev' });
+      const prevBtn = nav.createEl('button', { cls: 'hldg-page-btn', text: '‹ prev' });
       prevBtn.disabled = currentPage === 0;
       prevBtn.addEventListener('click', () => {
         if (currentPage > 0) {

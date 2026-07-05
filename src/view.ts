@@ -96,7 +96,7 @@ export class HledgerDashboardView extends ItemView {
     return VIEW_TYPE_HLEDGER_DASHBOARD;
   }
   getDisplayText(): string {
-    return 'hledger Dashboard';
+    return 'Hledger dashboard';
   }
   getIcon(): string {
     return 'dollar-sign';
@@ -152,7 +152,7 @@ export class HledgerDashboardView extends ItemView {
     this.errorContainer.empty();
 
     const card = this.contentContainer.createDiv({ cls: 'hldg-onboarding' });
-    card.createEl('h2', { text: 'hledger Dashboard' });
+    card.createEl('h2', { text: 'Hledger dashboard' });
     card.createEl('p', { text: 'Configure the plugin to get started:' });
 
     const steps = card.createEl('ol');
@@ -164,7 +164,7 @@ export class HledgerDashboardView extends ItemView {
     );
 
     const step2 = steps.createEl('li');
-    const btn = step2.createEl('button', { text: 'Open Settings', cls: 'mod-cta' });
+    const btn = step2.createEl('button', { text: 'Open settings', cls: 'mod-cta' });
     btn.addEventListener('click', () => {
       (this.app as unknown as { setting: { open: () => void } }).setting.open();
     });
@@ -433,7 +433,7 @@ export class HledgerDashboardView extends ItemView {
   private async renderActiveTab(): Promise<void> {
     destroyAllCharts();
     this.refreshBtn.disabled = true;
-    this.refreshBtn.setText('↻ Loading...');
+    this.refreshBtn.setText('↻ loading...');
     this.errorEl.textContent = '';
     this.errorContainer.empty();
 
@@ -472,7 +472,7 @@ export class HledgerDashboardView extends ItemView {
 
     const savedScroll = this.contentContainer.scrollTop;
     try {
-      const tempDiv = activeDocument.createElement('div');
+      const tempDiv = activeWindow.createDiv();
       switch (this.activeTabId) {
         case 'balance-sheet':
           await renderBalanceSheet(tempDiv, this.client, ctx);
@@ -502,7 +502,7 @@ export class HledgerDashboardView extends ItemView {
     }
 
     this.refreshBtn.disabled = false;
-    this.refreshBtn.setText('↻ Refresh');
+    this.refreshBtn.setText('↻ refresh');
     this.loadingContainer.hidden = true;
   }
 

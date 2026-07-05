@@ -141,7 +141,7 @@ export async function renderTransfers(
       );
     });
     container.createEl('br');
-    container.createEl('h3', { text: 'Monthly Transfer Volume' });
+    container.createEl('h3', { text: 'Monthly transfer volume' });
     const chartContainer = container.createDiv({ cls: 'hldg-chart-mount' });
     createBarChart(chartContainer, monthLabels, [
       {
@@ -154,7 +154,7 @@ export async function renderTransfers(
 
   if (filtered.length > 0) {
     container.createEl('br');
-    container.createEl('h3', { text: 'Transfer History' });
+    container.createEl('h3', { text: 'Transfer history' });
     const toggleRow = container.createDiv({ cls: 'hldg-view-toggle-row' });
     toggleRow.createSpan({ text: 'Direction:', cls: 'hldg-view-toggle-label' });
     const allBtn = toggleRow.createEl('button', {

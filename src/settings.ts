@@ -20,7 +20,7 @@ class JournalFileSuggestModal extends SuggestModal<TFile> {
   }
 
   renderSuggestion(file: TFile, el: HTMLElement): void {
-    el.createEl('div', { text: file.path });
+    el.createDiv({ text: file.path });
   }
 
   onChooseSuggestion(file: TFile): void {
@@ -47,11 +47,11 @@ export class HledgerDashboardSettingTab extends PluginSettingTab {
     containerEl.empty();
 
     new Setting(containerEl)
-      .setName('hledger binary path')
-      .setDesc('Path to hledger. Defaults to "hledger" (found via PATH).')
+      .setName('Hledger binary PATH')
+      .setDesc('PATH to hledger. Defaults to "hledger" (found via PATH).')
       .addText((text) =>
         text
-          .setPlaceholder('hledger')
+          .setPlaceholder('Hledger')
           .setValue(this.plugin.settings.hledgerPath)
           .onChange(async (val) => {
             this.plugin.settings.hledgerPath = val || 'hledger';
@@ -79,7 +79,7 @@ export class HledgerDashboardSettingTab extends PluginSettingTab {
                 }, 3000),
               );
             } catch {
-              btn.setButtonText('✗ Failed');
+              btn.setButtonText('✗ failed');
               this.closeBtnTimers.push(
                 window.setTimeout(() => {
                   btn.setButtonText('Test');
@@ -92,10 +92,10 @@ export class HledgerDashboardSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Journal file')
-      .setDesc('Path to your hledger journal file, relative to vault root.')
+      .setDesc('PATH to your hledger journal file, relative to vault root.')
       .addText((text) =>
         text
-          .setPlaceholder('ledger.journal')
+          .setPlaceholder('Ledger.journal')
           .setValue(this.plugin.settings.journalFile)
           .onChange(async (val) => {
             this.plugin.settings.journalFile = val;
@@ -128,7 +128,7 @@ export class HledgerDashboardSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName('Known currencies')
       .setDesc(
-        'Comma-separated currency symbols used to distinguish cash accounts from investment/stock accounts in the Balance Sheet.',
+        'Comma-separated currency symbols used to distinguish cash accounts from investment/stock accounts in the balance sheet.',
       )
       .addText((text) =>
         text
@@ -148,7 +148,7 @@ export class HledgerDashboardSettingTab extends PluginSettingTab {
       .setDesc('Account pattern for uncategorized/unclassified transactions.')
       .addText((text) =>
         text
-          .setPlaceholder('equity:uncategorized')
+          .setPlaceholder('Equity:uncategorized')
           .setValue(this.plugin.settings.uncategorizedAccount)
           .onChange(async (val) => {
             this.plugin.settings.uncategorizedAccount = val;
@@ -158,7 +158,7 @@ export class HledgerDashboardSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Page size')
-      .setDesc('Number of transactions per page in the Transactions tab.')
+      .setDesc('Number of transactions per page in the transactions tab.')
       .addText((text) =>
         text
           .setPlaceholder('50')
@@ -179,7 +179,7 @@ export class HledgerDashboardSettingTab extends PluginSettingTab {
         dropdown
           .addOption('month', 'Month')
           .addOption('quarter', 'Quarter')
-          .addOption('ytd', 'Year to Date')
+          .addOption('ytd', 'Year to date')
           .setValue(this.plugin.settings.defaultPeriod)
           .onChange(async (val) => {
             this.plugin.settings.defaultPeriod = val as 'month' | 'quarter' | 'ytd';
@@ -187,7 +187,7 @@ export class HledgerDashboardSettingTab extends PluginSettingTab {
           }),
       );
 
-    new Setting(containerEl).setName('Filter Shortcuts').setHeading();
+    new Setting(containerEl).setName('Filter shortcuts').setHeading();
     containerEl.createEl('p', {
       text: 'Define named filter presets that appear as one-click chips in the filter bar.',
       cls: 'hldg-setting-desc',
@@ -241,7 +241,7 @@ export class HledgerDashboardSettingTab extends PluginSettingTab {
     }
 
     new Setting(containerEl).addButton((btn) =>
-      btn.setButtonText('Add Shortcut').onClick(async () => {
+      btn.setButtonText('Add shortcut').onClick(async () => {
         this.plugin.settings.filterShortcuts.push({
           id: `sc-${Date.now()}`,
           name: 'New Shortcut',

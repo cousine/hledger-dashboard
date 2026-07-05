@@ -131,7 +131,7 @@ export async function renderActivity(
       );
       const monthly = extractMonthlyTrend(monthlyStdout);
       if (monthly.months.length > 1) {
-        container.createEl('h3', { text: 'Monthly Trend' });
+        container.createEl('h3', { text: 'Monthly trend' });
         const chartRow = container.createDiv({ cls: 'hldg-chart-mount' });
         createLineChart(chartRow, monthly.months, [
           {
@@ -167,7 +167,7 @@ export async function renderActivity(
 
     if (showX.length === 0 && showNative.length === 0) return;
 
-    expenseSection.createEl('h3', { text: 'Expense Breakdown' });
+    expenseSection.createEl('h3', { text: 'Expense breakdown' });
 
     // View toggle
     const toggleRow = expenseSection.createDiv({ cls: 'hldg-view-toggle-row' });
@@ -246,7 +246,7 @@ export async function renderActivity(
   renderExpenseSection();
 
   if (incomeChildrenNative.length > 0) {
-    container.createEl('h3', { text: 'Income Breakdown' });
+    container.createEl('h3', { text: 'Income breakdown' });
     const rows: Row[] = incomeChildrenNative.map((e) => [
       e.account.replace('income:', ''),
       { text: formatAmount(-e.amount, e.commodity), sortValue: -e.amount },

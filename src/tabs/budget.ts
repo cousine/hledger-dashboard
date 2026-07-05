@@ -18,7 +18,7 @@ export async function renderBudget(
   ctx: DashboardContext,
 ): Promise<void> {
   container.empty();
-  container.createEl('h2', { text: 'Budget vs Actual' });
+  container.createEl('h2', { text: 'Budget vs actual' });
 
   const expenseLiabAccountArgs = buildHledgerAccountArgs(ctx.filter, ['expenses:', 'liabilities:']);
 
@@ -410,7 +410,7 @@ export async function renderBudget(
       }
     }
 
-    container.createEl('h3', { text: 'Asset Balance vs Expense Forecast' });
+    container.createEl('h3', { text: 'Asset balance vs expense forecast' });
     container.createEl('br');
     const forecastContainer = container.createDiv({ cls: 'hldg-chart-mount' });
 

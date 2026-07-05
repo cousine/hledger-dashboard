@@ -16,7 +16,7 @@ export async function renderBalanceSheet(
 ): Promise<void> {
   balanceSheetViewMode = ctx.uiState?.balanceSheetMode ?? 'detail';
   container.empty();
-  container.createEl('h2', { text: 'Balance Sheet' });
+  container.createEl('h2', { text: 'Balance sheet' });
 
   const accountArgs = buildHledgerAccountArgs(ctx.filter, ['^assets:', '^liabilities:']);
   const depthArgs = shouldDropDepth(ctx.filter) ? [] : ['--depth', '5'];

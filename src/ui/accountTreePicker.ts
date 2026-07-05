@@ -103,7 +103,7 @@ function renderNodes(
     (item as HTMLElement).style.setProperty('--hldg-depth', String(depth));
 
     if (node.children.length > 0) {
-      const toggle = item.createEl('span', {
+      const toggle = item.createSpan({
         cls: 'hldg-dd-toggle',
         text: collapsed.has(node.fullPath) ? '▶' : '▼',
       });
@@ -114,7 +114,7 @@ function renderNodes(
         onToggle?.();
       });
     } else {
-      item.createEl('span', { cls: 'hldg-dd-toggle-spacer' });
+      item.createSpan({ cls: 'hldg-dd-toggle-spacer' });
     }
 
     const cb = item.createEl('input', { attr: { type: 'checkbox' } });

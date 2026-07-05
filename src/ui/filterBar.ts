@@ -59,12 +59,10 @@ export function renderFilterBar(
 
   for (const pat of filter.accountPatterns) {
     const chip = row.createSpan({ cls: `hldg-filter-chip ${chipClass(pat)}`, text: pat });
-    chip
-      .createEl('span', { cls: 'hldg-filter-chip-x', text: ' ✕' })
-      .addEventListener('click', (e) => {
-        e.stopPropagation();
-        cb.onRemoveAccountPattern(pat);
-      });
+    chip.createSpan({ cls: 'hldg-filter-chip-x', text: ' ✕' }).addEventListener('click', (e) => {
+      e.stopPropagation();
+      cb.onRemoveAccountPattern(pat);
+    });
   }
 
   row.createSpan({ cls: 'hldg-filter-label', text: 'Currency:' });
@@ -76,12 +74,10 @@ export function renderFilterBar(
 
   for (const c of filter.currencies) {
     const chip = row.createSpan({ cls: `hldg-filter-chip ${currencyChipClass(c)}`, text: c });
-    chip
-      .createEl('span', { cls: 'hldg-filter-chip-x', text: ' ✕' })
-      .addEventListener('click', (e) => {
-        e.stopPropagation();
-        cb.onRemoveCurrency(c);
-      });
+    chip.createSpan({ cls: 'hldg-filter-chip-x', text: ' ✕' }).addEventListener('click', (e) => {
+      e.stopPropagation();
+      cb.onRemoveCurrency(c);
+    });
   }
 
   row
