@@ -11,6 +11,26 @@ Full financial dashboard for [hledger](https://hledger.org) journals, inside Obs
 
 ![Dashboard](docs/screenshot.png)
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+## Table of Contents
+
+- [Features](#features)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Dashboard Tabs](#dashboard-tabs)
+- [Settings](#settings)
+- [Period Controls](#period-controls)
+- [Currency Display](#currency-display)
+- [Budget Setup](#budget-setup)
+- [Transfers Setup](#transfers-setup)
+- [Privacy](#privacy)
+- [Contributing](#contributing)
+- [License](#license)
+
+<!-- END doctoc -->
+
 ## Features
 
 | Tab               | Description                                                                                                                            |
@@ -176,6 +196,16 @@ RUN_INTEGRATION=1 pnpm run test:run     # + smoke tests against real hledger bin
 ```
 
 Integration tests use `sample.journal` and require `hledger` on PATH.
+
+### Table of Contents
+
+The table of contents is auto-generated with [doctoc](https://github.com/thlorenz/doctoc). After adding or renaming sections, regenerate it:
+
+```bash
+pnpm run toc
+```
+
+CI runs `pnpm run toc:check` to verify the TOC is up to date — the check fails if it's stale.
 
 ### Obsidian Plugin Workflow
 

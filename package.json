@@ -8,7 +8,9 @@
     "build": "node esbuild.config.mjs production",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "toc": "doctoc --minlevel 2 --maxlevel 2 README.md",
+    "toc:check": "doctoc --minlevel 2 --maxlevel 2 README.md --dryrun"
   },
   "keywords": [
     "obsidian",
@@ -38,6 +40,7 @@
     "builtin-modules": "^3.3.0",
     "chart.js": "^4.4.0",
     "chartjs-chart-treemap": "^2.0.0",
+    "doctoc": "^2.5.0",
     "esbuild": "^0.28.0",
     "happy-dom": "^20.10.6",
     "obsidian": "^1.4.0",
