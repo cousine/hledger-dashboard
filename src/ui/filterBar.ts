@@ -9,7 +9,7 @@ export interface FilterBarCallbacks {
   onApplyShortcut: (shortcut: FilterShortcut) => void;
 }
 
-function chipClass(pattern: string): string {
+export function chipClass(pattern: string): string {
   if (pattern.startsWith('^income') || pattern.startsWith('income')) return 'hldg-filter-chip-income';
   if (pattern.startsWith('^expenses') || pattern.startsWith('expenses')) return 'hldg-filter-chip-expenses';
   if (pattern.startsWith('^assets') || pattern.startsWith('assets')) return 'hldg-filter-chip-assets';
@@ -18,7 +18,7 @@ function chipClass(pattern: string): string {
   return 'hldg-filter-chip-default';
 }
 
-function currencyChipClass(currency: string): string {
+export function currencyChipClass(currency: string): string {
   if (currency === '$' || currency === 'USD') return 'hldg-filter-chip-currency-usd';
   if (currency === 'EUR') return 'hldg-filter-chip-currency-eur';
   return 'hldg-filter-chip-currency-other';

@@ -6,7 +6,32 @@ export interface Column {
 
 export type Row = (string | { text: string; cls?: string; sortValue?: string | number; onClick?: () => void })[];
 
-function getCellValue(row: Row, ci: number): string | number | undefined {
+export function sortRows(rows: Row[], sortCol: number, sortAsc: boolean): Row[] {
+  if (sortCol < 0) return rows;
+  return [...rows].sort((a, b) => {
+    const av = getCellValue(a, sortCol);
+    const bv = getCellValue(b, sortCol);
+    let cmp: number;
+    const an = typeof av === 'number' ? av : parseFloat(String(av).replace(/[^0-9.-]/g, ''));
+    const bn = typeof bv === 'number' ? bv : parseFloat(String(bv).replace(/[^0-9.-]/g, ''));
+    if (!isNaN(an) && !isNaN(bn)) {
+      cmp = an - bn;
+    } else {
+      cmp = String(av ?? '').localeCompare(String(bv ?? ''), undefined, { sensitivity: 'base' });
+    }
+    return sortAsc ? cmp : -cmp;
+  });
+}
+
+export function getPaginationInfo(totalItems: number, pageSize: number, currentPage: number): { totalPages: number; currentPage: number; startIdx: number; endIdx: number } {
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const clampedPage = Math.min(currentPage, totalPages - 1);
+  const startIdx = clampedPage * pageSize;
+  const endIdx = Math.min(startIdx + pageSize, totalItems);
+  return { totalPages, currentPage: clampedPage, startIdx, endIdx };
+}
+
+export function getCellValue(row: Row, ci: number): string | number | undefined {
   const cell = row[ci];
   if (typeof cell === 'object' && cell !== null) {
     return cell.sortValue ?? cell.text;
@@ -39,19 +64,7 @@ export function buildTable(
     const sortCol = onSortChange ? (sortState?.col ?? -1) : internalSortCol;
     const sortAsc = onSortChange ? (sortState?.asc ?? true) : internalSortAsc;
 
-    const sorted = sortCol < 0 ? rows : [...rows].sort((a, b) => {
-      const av = getCellValue(a, sortCol);
-      const bv = getCellValue(b, sortCol);
-      let cmp: number;
-      const an = typeof av === 'number' ? av : parseFloat(String(av));
-      const bn = typeof bv === 'number' ? bv : parseFloat(String(bv));
-      if (!isNaN(an) && !isNaN(bn)) {
-        cmp = an - bn;
-      } else {
-        cmp = String(av ?? '').localeCompare(String(bv ?? ''), undefined, { sensitivity: 'base' });
-      }
-      return sortAsc ? cmp : -cmp;
-    });
+    const sorted = sortRows(rows, sortCol, sortAsc);
 
     for (const row of sorted) {
       const tr = tbody.createEl('tr');
@@ -159,28 +172,12 @@ export function createPaginatedTable(
   function render() {
     wrapper.empty();
 
-    const sorted = [...currentRows];
-    if (sortCol >= 0) {
-      sorted.sort((a, b) => {
-        const av = getCellValue(a, sortCol);
-        const bv = getCellValue(b, sortCol);
-        let cmp: number;
-        const an = typeof av === 'number' ? av : parseFloat(String(av));
-        const bn = typeof bv === 'number' ? bv : parseFloat(String(bv));
-        if (!isNaN(an) && !isNaN(bn)) {
-          cmp = an - bn;
-        } else {
-          cmp = String(av ?? '').localeCompare(String(bv ?? ''), undefined, { sensitivity: 'base' });
-        }
-        return sortAsc ? cmp : -cmp;
-      });
-    }
+    const sorted = sortCol >= 0 ? sortRows(currentRows, sortCol, sortAsc) : [...currentRows];
 
-    const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
-    if (currentPage >= totalPages) currentPage = totalPages - 1;
-
-    const startIdx = currentPage * pageSize;
-    const pageRows = sorted.slice(startIdx, startIdx + pageSize);
+    const pg = getPaginationInfo(sorted.length, pageSize, currentPage);
+    currentPage = pg.currentPage;
+    const totalPages = pg.totalPages;
+    const pageRows = sorted.slice(pg.startIdx, pg.endIdx);
 
     buildTable(wrapper, columns, pageRows, totalRows,
       { col: sortCol, asc: sortAsc },

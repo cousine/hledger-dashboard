@@ -5,55 +5,9 @@ import { createPaginatedTable, Column, Row } from '../ui/table';
 import { createLineChart } from '../ui/chart';
 import { applyCurrencyFilter, buildHledgerAccountArgs, shouldDropDepth } from '../filters';
 import { formatAmount, PALETTE } from '../format';
-
-function extractFlat(stdout: string): BalanceEntry[] {
-  const raw: any[] = JSON.parse(stdout || '[]');
-  const entries = Array.isArray(raw[0]) ? raw[0] : raw;
-  const out: BalanceEntry[] = [];
-  for (const e of entries) {
-    if (!Array.isArray(e) || e.length < 4) continue;
-    const name = e[0] as string;
-    const indent = (e[2] as number) ?? 0;
-    for (const amt of (e[3] as any[]) || []) {
-      out.push({
-        account: name,
-        amount: amt.aquantity?.floatingPoint ?? 0,
-        commodity: amt.acommodity ?? '',
-        depth: indent,
-      });
-    }
-  }
-  return out;
-}
-
-function isLeaf(account: string, allAccounts: string[]): boolean {
-  const prefix = account + ':';
-  return !allAccounts.some(a => a !== account && a.startsWith(prefix));
-}
+import { extractFlat, extractBalanceTimeSeries, isLeaf } from '../hledger/parse';
 
 let balanceSheetViewMode: 'summary' | 'detail' = 'detail';
-
-function extractBalanceTimeSeries(stdout: string): { months: string[]; accounts: Record<string, number[]> } {
-  const report = JSON.parse(stdout);
-  const r = Array.isArray(report) ? report[0] : report;
-  const months = r.prDates.map((dp: any) => {
-    const d = dp[0]?.contents || '';
-    return d.substring(0, 7);
-  });
-  const accounts: Record<string, number[]> = {};
-  for (const row of r.prRows) {
-    const name: string = row.prrName || '';
-    const vals = new Array(months.length).fill(0);
-    for (let i = 0; i < row.prrAmounts.length && i < months.length; i++) {
-      const amtPairs = row.prrAmounts[i];
-      if (Array.isArray(amtPairs)) {
-        vals[i] = amtPairs.reduce((s: number, a: any) => s + (a.aquantity?.floatingPoint ?? 0), 0);
-      }
-    }
-    accounts[name] = vals;
-  }
-  return { months, accounts };
-}
 
 export async function renderBalanceSheet(
   container: HTMLElement,

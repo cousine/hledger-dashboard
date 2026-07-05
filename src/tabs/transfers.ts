@@ -5,67 +5,7 @@ import { createPaginatedTable, Row } from '../ui/table';
 import { createBarChart } from '../ui/chart';
 import { formatAmount } from '../format';
 import { matchPattern } from '../filters';
-
-function extractMonthlyAmounts(stdout: string): { months: string[]; amounts: number[] } {
-  const report = JSON.parse(stdout);
-  const r = Array.isArray(report) ? report[0] : report;
-  if (!r || !r.prDates || !r.prRows) return { months: [], amounts: [] };
-  const months = r.prDates.map((dp: any) => {
-    const d = dp[0]?.contents || '';
-    return d.substring(0, 7);
-  });
-  const amounts = new Array(months.length).fill(0);
-  for (const row of r.prRows) {
-    for (let i = 0; i < row.prrAmounts.length && i < months.length; i++) {
-      const amtPairs = row.prrAmounts[i];
-      if (Array.isArray(amtPairs)) {
-        amounts[i] += amtPairs.reduce((s: number, a: any) => s + Math.abs(a.aquantity?.floatingPoint ?? 0), 0);
-      }
-    }
-  }
-  return { months, amounts };
-}
-
-interface TransferLeg {
-  date: string;
-  description: string;
-  account: string;
-  amount: number;
-  commodity: string;
-}
-
-function parsePrintTransfers(stdout: string): TransferLeg[] {
-  const raw: any[] = JSON.parse(stdout);
-  if (!Array.isArray(raw)) return [];
-
-  const legs: TransferLeg[] = [];
-
-  for (const t of raw) {
-    if (!t || !t.tpostings) continue;
-    const date = t.tdate || '';
-    const desc = t.tdescription || '';
-
-    for (const p of t.tpostings) {
-      const acct: string = p.paccount || '';
-      if (acct === 'equity:transfer') continue;
-      if (!p.pamount || !p.pamount.length) continue;
-
-      const amt = p.pamount[0];
-      const floatingPoint = amt?.aquantity?.floatingPoint;
-      if (typeof floatingPoint !== 'number' || floatingPoint === 0) continue;
-
-      legs.push({
-        date,
-        description: desc,
-        account: acct,
-        amount: floatingPoint,
-        commodity: amt?.acommodity || '',
-      });
-    }
-  }
-
-  return legs;
-}
+import { extractMonthlyAmounts, parsePrintTransfers, makeCacheKey, TransferLeg } from '../hledger/parse';
 
 let directionFilter: 'all' | 'out' | 'in' = 'all';
 
@@ -78,14 +18,6 @@ interface CachedTransferData {
 }
 
 let cachedData: CachedTransferData | null = null;
-
-function makeCacheKey(ctx: DashboardContext): string {
-  return JSON.stringify({
-    accounts: ctx.filter.accountPatterns.slice().sort(),
-    currencies: ctx.filter.currencies.slice().sort(),
-    period: ctx.period.hledgerPeriod,
-  });
-}
 
 export async function renderTransfers(
   container: HTMLElement,

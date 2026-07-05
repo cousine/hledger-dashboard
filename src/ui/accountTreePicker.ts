@@ -1,10 +1,10 @@
-interface TreeNode {
+export interface TreeNode {
   name: string;
   fullPath: string;
   children: TreeNode[];
 }
 
-function parseTree(text: string): TreeNode[] {
+export function parseTree(text: string): TreeNode[] {
   const lines = text.trim().split('\n');
   const root: TreeNode[] = [];
   const stack: { node: TreeNode; depth: number }[] = [];
@@ -26,7 +26,7 @@ function parseTree(text: string): TreeNode[] {
   return root;
 }
 
-function selectAll(nodes: TreeNode[], checked: boolean, query: string, selected: Set<string>): void {
+export function selectAll(nodes: TreeNode[], checked: boolean, query: string, selected: Set<string>): void {
   for (const n of nodes) {
     const match = !query || n.fullPath.toLowerCase().includes(query.toLowerCase());
     if (match) { checked ? selected.add(n.fullPath) : selected.delete(n.fullPath); }
@@ -34,21 +34,21 @@ function selectAll(nodes: TreeNode[], checked: boolean, query: string, selected:
   }
 }
 
-function uncheckChildren(nodes: TreeNode[], selected: Set<string>): void {
+export function uncheckChildren(nodes: TreeNode[], selected: Set<string>): void {
   for (const n of nodes) {
     selected.delete(n.fullPath);
     uncheckChildren(n.children, selected);
   }
 }
 
-function hasSelectedDescendant(node: TreeNode, selected: Set<string>): boolean {
+export function hasSelectedDescendant(node: TreeNode, selected: Set<string>): boolean {
   for (const child of node.children) {
     if (selected.has(child.fullPath) || hasSelectedDescendant(child, selected)) return true;
   }
   return false;
 }
 
-function hasMatch(nodes: TreeNode[], query: string): boolean {
+export function hasMatch(nodes: TreeNode[], query: string): boolean {
   if (!query) return true;
   for (const n of nodes) {
     if (n.fullPath.toLowerCase().includes(query)) return true;
@@ -57,7 +57,7 @@ function hasMatch(nodes: TreeNode[], query: string): boolean {
   return false;
 }
 
-function initCollapsed(nodes: TreeNode[], collapsed: Set<string>): void {
+export function initCollapsed(nodes: TreeNode[], collapsed: Set<string>): void {
   for (const n of nodes) {
     if (n.children.length > 0) {
       collapsed.add(n.fullPath);

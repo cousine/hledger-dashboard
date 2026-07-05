@@ -4,46 +4,8 @@ import { buildTable, Column, Row } from '../ui/table';
 import { buildKpiRow, buildKpiCard } from '../ui/kpi';
 import { createDoughnutChart } from '../ui/chart';
 import { formatAmount, CONTRAST_PALETTE } from '../format';
-
-function matchPattern(accountName: string, pattern: string): boolean {
-  const lower = accountName.toLowerCase();
-  const p = pattern.toLowerCase();
-  if (p.startsWith('^')) return lower.startsWith(p.substring(1));
-  if (p.endsWith(':') || p.endsWith(':*')) return lower.startsWith(p.replace(/\*$/, ''));
-  return lower === p || lower.startsWith(p + ':');
-}
-
-function extractRegister(stdout: string): RegisterEntry[] {
-  const raw: any[] = JSON.parse(stdout || '[]');
-  const result: RegisterEntry[] = [];
-  let lastDate = '';
-  let lastDesc = '';
-  for (const entry of raw) {
-    if (!Array.isArray(entry) || entry.length < 4) continue;
-    const detail = entry[3];
-    if (!detail || typeof detail !== 'object') continue;
-    const amounts = detail.pamount as any[] | undefined;
-    if (!amounts) continue;
-    if (entry[0]) lastDate = entry[0];
-    if (entry[2]) lastDesc = entry[2];
-    for (const a of amounts) {
-      result.push({
-        date: lastDate,
-        description: lastDesc,
-        account: detail.paccount || '',
-        amount: a.aquantity?.floatingPoint ?? 0,
-        commodity: a.acommodity ?? '',
-      });
-    }
-  }
-  return result;
-}
-
-function getTxnType(account: string, amount: number): 'Credit' | 'Debit' {
-  if (account.startsWith('expenses')) return amount > 0 ? 'Debit' : 'Credit';
-  if (account.startsWith('income')) return amount < 0 ? 'Credit' : 'Debit';
-  return amount > 0 ? 'Credit' : 'Debit';
-}
+import { matchPattern } from '../filters';
+import { extractRegister, getTxnType } from '../hledger/parse';
 
 function groupBreakdown(entries: RegisterEntry[], prefix: string, depth: number): { labels: string[]; data: number[] } {
   const groups = new Map<string, number>();

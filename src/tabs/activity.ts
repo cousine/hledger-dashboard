@@ -5,24 +5,7 @@ import { createPaginatedTable, Column, Row } from '../ui/table';
 import { createDoughnutChart, createLineChart } from '../ui/chart';
 import { applyCurrencyFilter, buildHledgerAccountArgs, shouldDropDepth } from '../filters';
 import { formatAmount, PALETTE } from '../format';
-
-function extractFlat(stdout: string): BalanceEntry[] {
-  const raw: any[] = JSON.parse(stdout || '[]');
-  const entries = Array.isArray(raw[0]) ? raw[0] : raw;
-  const out: BalanceEntry[] = [];
-  for (const e of entries) {
-    if (!Array.isArray(e) || e.length < 4) continue;
-    for (const amt of (e[3] as any[]) || []) {
-      out.push({
-        account: e[0] as string,
-        amount: amt.aquantity?.floatingPoint ?? 0,
-        commodity: amt.acommodity ?? '',
-        depth: (e[2] as number) ?? 0,
-      });
-    }
-  }
-  return out;
-}
+import { extractFlat, extractMonthlyTrend } from '../hledger/parse';
 
 let expenseViewMode: 'groups' | 'atomic' = 'atomic';
 
@@ -216,28 +199,4 @@ export async function renderActivity(
     ]);
     createPaginatedTable(container, [{ label: 'Source' }, { label: 'Amount', align: 'right' }], rows, ctx.settings.recentTxnCount || 50);
   }
-}
-
-function extractMonthlyTrend(stdout: string): { months: string[]; income: number[]; expenses: number[] } {
-  const report = JSON.parse(stdout);
-  const r = Array.isArray(report) ? report[0] : report;
-  const months = r.prDates.map((dp: any) => {
-    const d = dp[0]?.contents || '';
-    return d.substring(0, 7);
-  });
-  const income = new Array(months.length).fill(0);
-  const expenses = new Array(months.length).fill(0);
-  for (const row of r.prRows) {
-    const name: string = row.prrName || '';
-    for (let i = 0; i < row.prrAmounts.length && i < months.length; i++) {
-      const amtPairs = row.prrAmounts[i];
-      let val = 0;
-      if (Array.isArray(amtPairs)) {
-        val = amtPairs.reduce((s: number, a: any) => s + (a.aquantity?.floatingPoint ?? 0), 0);
-      }
-      if (name === 'income' || name.startsWith('income:')) income[i] -= val;
-      else if (name === 'expenses' || name.startsWith('expenses:')) expenses[i] += val;
-    }
-  }
-  return { months, income, expenses };
 }

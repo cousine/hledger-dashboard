@@ -1,60 +1,6 @@
 import { HledgerClient } from './client';
 import { BalanceEntry, RegisterEntry, DashboardPeriod } from './types';
-
-function parseAmounts(amounts: any[]): { quantity: number; commodity: string }[] {
-  if (!amounts || !Array.isArray(amounts)) return [];
-  return amounts.map((a: any) => ({
-    quantity: a.aquantity?.floatingPoint ?? 0,
-    commodity: a.acommodity || '',
-  }));
-}
-
-function parseAmount(str: string): { quantity: number; commodity: string } {
-  const trimmed = str.trim();
-  if (!trimmed || trimmed === '0' || trimmed === '"0"') return { quantity: 0, commodity: '' };
-
-  const dollarMatch = trimmed.match(/^\$(-?[\d,]+\.?\d*)/);
-  if (dollarMatch) return { quantity: parseFloat(dollarMatch[1].replace(/,/g, '')), commodity: '$' };
-
-  const egpMatch = trimmed.match(/^([A-Z]+)\s+(-?[\d,]+\.?\d*)/);
-  if (egpMatch) return { quantity: parseFloat(egpMatch[2].replace(/,/g, '')), commodity: egpMatch[1] };
-
-  const suffixMatch = trimmed.match(/(-?[\d,]+\.?\d*)\s+(\w+)/);
-  if (suffixMatch) return { quantity: parseFloat(suffixMatch[1].replace(/,/g, '')), commodity: suffixMatch[2] };
-
-  const numeric = parseFloat(trimmed.replace(/,/g, ''));
-  if (!isNaN(numeric)) return { quantity: numeric, commodity: '' };
-
-  return { quantity: 0, commodity: '' };
-}
-
-function parseCsvLine(line: string): string[] {
-  const result: string[] = [];
-  let current = '';
-  let inQuotes = false;
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if (ch === '"') { inQuotes = !inQuotes; }
-    else if (ch === ',' && !inQuotes) { result.push(current); current = ''; }
-    else { current += ch; }
-  }
-  result.push(current);
-  return result;
-}
-
-function extractFromJson(stdout: string): BalanceEntry[] {
-  const raw: any[] = JSON.parse(stdout || '[]');
-  const accounts = Array.isArray(raw[0]) ? raw[0] : raw;
-  const result: BalanceEntry[] = [];
-  for (const entry of accounts) {
-    if (!Array.isArray(entry) || entry.length < 4) continue;
-    const parsed = parseAmounts(entry[3]);
-    for (const p of parsed) {
-      result.push({ account: entry[0], amount: p.quantity, commodity: p.commodity, depth: entry[2] });
-    }
-  }
-  return result;
-}
+import { parseCsvLine, parseAmount, extractFromJson, parseAmounts } from './parse';
 
 export async function getBalances(
   client: HledgerClient,
