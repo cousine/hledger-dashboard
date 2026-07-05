@@ -1,6 +1,6 @@
 {
   "name": "hledger-dashboard",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Obsidian plugin: financial dashboard for hledger journals",
   "main": "main.js",
   "scripts": {
@@ -13,7 +13,8 @@
     "toc:check": "doctoc --minlevel 2 --maxlevel 2 README.md --dryrun",
     "lint": "biome check --write src tests",
     "lint:check": "biome check src tests",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "version:check": "node scripts/check-versions.mjs"
   },
   "keywords": [
     "obsidian",

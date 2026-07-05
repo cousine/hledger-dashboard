@@ -31,6 +31,8 @@ jobs:
 
       - run: pnpm run typecheck
 
+      - run: pnpm run version:check
+
       - run: pnpm run test:run
 
       - run: pnpm run test:coverage
