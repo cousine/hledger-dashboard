@@ -16,6 +16,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      id-token: write
+      attestations: write
+      actions: read
     steps:
       - uses: actions/checkout@v7.0.0
         with:
@@ -37,12 +40,36 @@ jobs:
 
       - run: pnpm run build
 
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0.24.0
+        with:
+          output-file: sbom.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      - name: Attest release artifacts
+        uses: actions/attest@v4.1.1
+        with:
+          subject-path: |
+            manifest.json
+            main.js
+            styles.css
+
+      - name: Attest SBOM
+        uses: actions/attest@v4.1.1
+        with:
+          subject-path: |
+            manifest.json
+            main.js
+            styles.css
+          sbom-path: sbom.spdx.json
+
       - name: Create release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="${{ inputs.tag || github.ref_name }}"
           gh release create "$TAG" \
-            manifest.json main.js styles.css \
+            manifest.json main.js styles.css sbom.spdx.json \
             --title "$TAG" \
             --generate-notes
