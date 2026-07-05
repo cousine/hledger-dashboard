@@ -133,8 +133,8 @@ export function extractMonthlyTrend(stdout: string): {
     const d = dp[0]?.contents || '';
     return d.substring(0, 7);
   });
-  const income = new Array(months.length).fill(0);
-  const expenses = new Array(months.length).fill(0);
+  const income = Array.from({ length: months.length }, () => 0);
+  const expenses = Array.from({ length: months.length }, () => 0);
   for (const row of r.prRows) {
     const name: string = row.prrName || '';
     for (let i = 0; i < (row.prrAmounts?.length ?? 0) && i < months.length; i++) {
@@ -167,7 +167,7 @@ export function extractBalanceTimeSeries(stdout: string): {
   const accounts: Record<string, number[]> = {};
   for (const row of r.prRows) {
     const name: string = row.prrName || '';
-    const vals = new Array(months.length).fill(0);
+    const vals = Array.from({ length: months.length }, () => 0);
     for (let i = 0; i < (row.prrAmounts?.length ?? 0) && i < months.length; i++) {
       const amtPairs = row.prrAmounts?.[i];
       if (Array.isArray(amtPairs)) {
@@ -195,9 +195,9 @@ export function extractMonthlyData(stdout: string): {
     const d = dp[0]?.contents || '';
     return d.substring(0, 7);
   });
-  const income = new Array(months.length).fill(0);
-  const expenses = new Array(months.length).fill(0);
-  const liabilities = new Array(months.length).fill(0);
+  const income = Array.from({ length: months.length }, () => 0);
+  const expenses = Array.from({ length: months.length }, () => 0);
+  const liabilities = Array.from({ length: months.length }, () => 0);
   for (const row of r.prRows) {
     const name: string = row.prrName || '';
     for (let i = 0; i < (row.prrAmounts?.length ?? 0) && i < months.length; i++) {
@@ -233,7 +233,7 @@ export function extractMonthlyAssetsByGroup(stdout: string): {
     const name: string = row.prrName || '';
     if (name.startsWith('assets:')) {
       const groupName = name.replace('assets:', '');
-      const vals = new Array(months.length).fill(0);
+      const vals = Array.from({ length: months.length }, () => 0);
       for (let i = 0; i < (row.prrAmounts?.length ?? 0) && i < months.length; i++) {
         const amtPairs = row.prrAmounts?.[i];
         if (Array.isArray(amtPairs)) {
@@ -257,7 +257,7 @@ export function extractMonthlyAmounts(stdout: string): { months: string[]; amoun
     const d = dp[0]?.contents || '';
     return d.substring(0, 7);
   });
-  const amounts = new Array(months.length).fill(0);
+  const amounts = Array.from({ length: months.length }, () => 0);
   for (const row of r.prRows) {
     for (let i = 0; i < (row.prrAmounts?.length ?? 0) && i < months.length; i++) {
       const amtPairs = row.prrAmounts?.[i];
