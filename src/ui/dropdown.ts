@@ -10,7 +10,8 @@ export class Dropdown {
     onClose?: () => void,
   ) {
     this.onClose = onClose;
-    this.backdrop = document.body.createDiv({ cls: 'hldg-dropdown-backdrop' });
+    const doc = activeDocument ?? document;
+    this.backdrop = doc.body.createDiv({ cls: 'hldg-dropdown-backdrop' });
     this.panel = this.backdrop.createDiv({ cls: 'hldg-dropdown-panel' });
 
     const rect = anchorEl.getBoundingClientRect();
@@ -30,7 +31,7 @@ export class Dropdown {
       if (e.key === 'Escape') this.close();
     });
 
-    document.body.appendChild(this.backdrop);
+    doc.body.appendChild(this.backdrop);
     this.panel.focus();
   }
 

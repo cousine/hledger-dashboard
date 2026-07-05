@@ -45,7 +45,6 @@ export default class HledgerDashboardPlugin extends Plugin {
       clearTimeout(this.saveUIStateTimer);
       await this.saveData(this.settings);
     }
-    this.app.workspace.detachLeavesOfType(VIEW_TYPE_HLEDGER_DASHBOARD);
   }
 
   async loadSettings(): Promise<void> {
@@ -60,9 +59,9 @@ export default class HledgerDashboardPlugin extends Plugin {
     if (!this.settings.uiState) this.settings.uiState = {} as DashboardUIState;
     Object.assign(this.settings.uiState, partial);
     if (this.saveUIStateTimer !== null) clearTimeout(this.saveUIStateTimer);
-    this.saveUIStateTimer = window.setTimeout(async () => {
+    this.saveUIStateTimer = window.setTimeout(() => {
       this.saveUIStateTimer = null;
-      await this.saveData(this.settings);
+      void this.saveData(this.settings);
     }, 1000);
   }
 

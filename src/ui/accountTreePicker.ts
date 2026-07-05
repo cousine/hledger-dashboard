@@ -97,7 +97,6 @@ function renderNodes(
 
     const item = container.createDiv({ cls: 'hldg-dd-item' });
     (item as HTMLElement).style.setProperty('--hldg-depth', String(depth));
-    (item as HTMLElement).style.paddingLeft = `${depth * 18 + 4}px`;
 
     if (node.children.length > 0) {
       const toggle = item.createEl('span', {

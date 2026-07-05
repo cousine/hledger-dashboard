@@ -135,7 +135,7 @@ export function buildToolbar(
         callbacks.onYearChange((opt as HTMLElement).dataset.year || '');
       });
     });
-    document.addEventListener('click', closePanel);
+    (activeDocument ?? document).addEventListener('click', closePanel);
   }
 
   const makePresetBtn = (label: string, preset: DashboardPeriod['preset']) => {

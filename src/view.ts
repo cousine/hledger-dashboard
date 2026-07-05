@@ -147,7 +147,7 @@ export class HledgerDashboardView extends ItemView {
     this.tabBarContainer.empty();
     this.toolbarContainer.empty();
     this.filterBarContainer.empty();
-    this.loadingContainer.style.display = 'none';
+    this.loadingContainer.hidden = true;
     this.contentContainer.empty();
     this.errorContainer.empty();
 
@@ -450,7 +450,7 @@ export class HledgerDashboardView extends ItemView {
 
     const savedScroll = this.contentContainer.scrollTop;
     try {
-      const tempDiv = document.createElement('div');
+      const tempDiv = (activeDocument ?? document).createElement('div');
       switch (this.activeTabId) {
         case 'balance-sheet':
           await renderBalanceSheet(tempDiv, this.client, ctx);
@@ -481,7 +481,7 @@ export class HledgerDashboardView extends ItemView {
 
     this.refreshBtn.disabled = false;
     this.refreshBtn.setText('↻ Refresh');
-    this.loadingContainer.style.display = 'none';
+    this.loadingContainer.hidden = true;
   }
 
   async onClose(): Promise<void> {

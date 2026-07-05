@@ -30,16 +30,22 @@ class JournalFileSuggestModal extends SuggestModal<TFile> {
 
 export class HledgerDashboardSettingTab extends PluginSettingTab {
   plugin: HledgerDashboardPlugin;
+  private closeBtnTimers: number[] = [];
 
   constructor(app: App, plugin: HledgerDashboardPlugin) {
     super(app, plugin);
     this.plugin = plugin;
   }
 
+  hide(): void {
+    for (const id of this.closeBtnTimers) clearTimeout(id);
+    this.closeBtnTimers = [];
+  }
+
   display(): void {
     const { containerEl } = this;
     containerEl.empty();
-    containerEl.createEl('h2', { text: 'hledger Dashboard Settings' });
+    new Setting(containerEl).setName('hledger Dashboard Settings').setHeading();
 
     new Setting(containerEl)
       .setName('hledger binary path')
@@ -67,16 +73,20 @@ export class HledgerDashboardSettingTab extends PluginSettingTab {
               const client = new HledgerClient(vaultRoot);
               const version = await client.testConnection(this.plugin.settings.hledgerPath);
               btn.setButtonText(`✓ ${version}`);
-              setTimeout(() => {
-                btn.setButtonText('Test');
-                btn.setDisabled(false);
-              }, 3000);
+              this.closeBtnTimers.push(
+                window.setTimeout(() => {
+                  btn.setButtonText('Test');
+                  btn.setDisabled(false);
+                }, 3000),
+              );
             } catch {
               btn.setButtonText('✗ Failed');
-              setTimeout(() => {
-                btn.setButtonText('Test');
-                btn.setDisabled(false);
-              }, 5000);
+              this.closeBtnTimers.push(
+                window.setTimeout(() => {
+                  btn.setButtonText('Test');
+                  btn.setDisabled(false);
+                }, 5000),
+              );
             }
           }),
       );
@@ -178,7 +188,7 @@ export class HledgerDashboardSettingTab extends PluginSettingTab {
           }),
       );
 
-    containerEl.createEl('h3', { text: 'Filter Shortcuts' });
+    new Setting(containerEl).setName('Filter Shortcuts').setHeading();
     containerEl.createEl('p', {
       text: 'Define named filter presets that appear as one-click chips in the filter bar.',
       cls: 'hldg-setting-desc',
@@ -187,7 +197,7 @@ export class HledgerDashboardSettingTab extends PluginSettingTab {
     for (let i = 0; i < this.plugin.settings.filterShortcuts.length; i++) {
       const sc = this.plugin.settings.filterShortcuts[i];
       const section = containerEl.createDiv({ cls: 'hldg-shortcut-section' });
-      section.createEl('h4', { text: sc.name || `Shortcut ${i + 1}` });
+      new Setting(section).setName(sc.name || `Shortcut ${i + 1}`).setHeading();
 
       new Setting(section).setName('Name').addText((text) =>
         text.setValue(sc.name).onChange(async (val) => {
