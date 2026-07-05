@@ -190,12 +190,21 @@ pnpm run build  # production bundle → main.js
 ### Testing
 
 ```bash
+pnpm run lint                           # lint + format (auto-fix)
+pnpm run lint:check                     # lint check (CI mode, no fixes)
+pnpm run typecheck                      # TypeScript type checking
 pnpm run test:run                       # unit tests
 pnpm run test:coverage                  # unit tests + coverage report
 RUN_INTEGRATION=1 pnpm run test:run     # + smoke tests against real hledger binary
 ```
 
 Integration tests use `sample.journal` and require `hledger` on PATH.
+
+### Code Style
+
+- **Linting & formatting**: [Biome](https://biomejs.dev) handles both — `pnpm run lint` auto-fixes, `pnpm run lint:check` verifies in CI
+- **TypeScript**: Strict mode is enabled (`strict: true`)
+- **Conventions**: single quotes, 2-space indent, semicolons, trailing commas, 100-char width
 
 ### Table of Contents
 
@@ -220,9 +229,9 @@ With `pnpm run dev` watching, reload Obsidian (`Cmd/Ctrl+R`) after each rebuild 
 ### Pull Request Workflow
 
 1. Branch from `main` (`feature/...`, `fix/...`, `docs/...`, etc.)
-2. Ensure `pnpm run test:run` passes locally before pushing
+2. Ensure `pnpm run lint:check && pnpm run typecheck && pnpm run test:run` passes locally before pushing
 3. Open a PR against `main`
-4. CI runs the test suite + coverage — **all checks must pass before merge**
+4. CI runs lint, typecheck, tests, and coverage — **all checks must pass before merge**
 5. Keep branches focused; one logical change per PR
 
 ### Commit Messages
