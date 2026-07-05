@@ -17,6 +17,7 @@ const context = await esbuild.context({
     "obsidian",
     "electron",
     ...builtins,
+    ...builtins.map((m) => `node:${m}`),
   ],
   format: "cjs",
   target: "ES2020",
