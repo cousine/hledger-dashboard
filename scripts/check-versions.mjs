@@ -29,8 +29,7 @@ if (!(manifest.version in versions)) {
 const githubRef = process.env.GITHUB_REF;
 if (githubRef?.startsWith('refs/tags/')) {
   const tag = githubRef.replace('refs/tags/', '');
-  const tagVersion = tag.startsWith('v') ? tag.slice(1) : tag;
-  if (tagVersion !== manifest.version) {
+  if (tag !== manifest.version) {
     error(`Git tag "${tag}" does not match manifest.json version "${manifest.version}"`);
   }
 }
