@@ -28,13 +28,17 @@
   "bugs": {
     "url": "https://github.com/cousine/hledger-dashboard/issues"
   },
+  "packageManager": "pnpm@11.10.0",
+  "engines": {
+    "node": ">=26.0.0"
+  },
   "devDependencies": {
     "@types/node": "^20.0.0",
     "@vitest/coverage-v8": "^4.1.9",
     "builtin-modules": "^3.3.0",
     "chart.js": "^4.4.0",
     "chartjs-chart-treemap": "^2.0.0",
-    "esbuild": "^0.19.0",
+    "esbuild": "^0.28.0",
     "happy-dom": "^20.10.6",
     "obsidian": "^1.4.0",
     "tslib": "^2.6.0",
