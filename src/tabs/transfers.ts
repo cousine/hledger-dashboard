@@ -1,11 +1,16 @@
-import { DashboardContext } from '../hledger/types';
-import { HledgerClient } from '../hledger/client';
-import { buildKpiRow, buildKpiCard } from '../ui/kpi';
-import { createPaginatedTable, Row } from '../ui/table';
-import { createBarChart } from '../ui/chart';
-import { formatAmount } from '../format';
 import { matchPattern } from '../filters';
-import { extractMonthlyAmounts, parsePrintTransfers, makeCacheKey, TransferLeg } from '../hledger/parse';
+import { formatAmount } from '../format';
+import type { HledgerClient } from '../hledger/client';
+import {
+  extractMonthlyAmounts,
+  makeCacheKey,
+  parsePrintTransfers,
+  type TransferLeg,
+} from '../hledger/parse';
+import type { DashboardContext } from '../hledger/types';
+import { createBarChart } from '../ui/chart';
+import { buildKpiCard, buildKpiRow } from '../ui/kpi';
+import { createPaginatedTable, type Row } from '../ui/table';
 
 let directionFilter: 'all' | 'out' | 'in' = 'all';
 
@@ -22,7 +27,7 @@ let cachedData: CachedTransferData | null = null;
 export async function renderTransfers(
   container: HTMLElement,
   client: HledgerClient,
-  ctx: DashboardContext
+  ctx: DashboardContext,
 ): Promise<void> {
   directionFilter = ctx.uiState?.directionFilter ?? 'all';
   const parentEl = container.parentElement as HTMLElement | null;
@@ -44,23 +49,35 @@ export async function renderTransfers(
     eligibleLegKeys = cachedData.eligibleLegKeys;
   } else {
     const basePrintArgs: string[] = [
-      'print', 'equity:transfer',
-      '-p', ctx.period.hledgerPeriod,
-      '-O', 'json',
+      'print',
+      'equity:transfer',
+      '-p',
+      ctx.period.hledgerPeriod,
+      '-O',
+      'json',
     ];
 
     const [mStdout, pXStdout, pNStdout] = await Promise.all([
-      client.exec(ctx.settings.hledgerPath, [
-        'balance', 'equity:transfer',
-        '--monthly',
-        '-X', ctx.targetCurrency,
-        '-p', ctx.period.hledgerPeriod,
-        '-O', 'json',
-      ], ctx.settings.journalFile),
-      client.exec(ctx.settings.hledgerPath, [
-        ...basePrintArgs,
-        '-X', ctx.targetCurrency,
-      ], ctx.settings.journalFile),
+      client.exec(
+        ctx.settings.hledgerPath,
+        [
+          'balance',
+          'equity:transfer',
+          '--monthly',
+          '-X',
+          ctx.targetCurrency,
+          '-p',
+          ctx.period.hledgerPeriod,
+          '-O',
+          'json',
+        ],
+        ctx.settings.journalFile,
+      ),
+      client.exec(
+        ctx.settings.hledgerPath,
+        [...basePrintArgs, '-X', ctx.targetCurrency],
+        ctx.settings.journalFile,
+      ),
       client.exec(ctx.settings.hledgerPath, basePrintArgs, ctx.settings.journalFile),
     ]);
 
@@ -86,18 +103,20 @@ export async function renderTransfers(
   }
 
   // Filter X legs by currency (match on date+description+account)
-  let filtered = xLegs.filter(l => eligibleLegKeys.has(`${l.date}|${l.description}|${l.account}`));
+  let filtered = xLegs.filter((l) =>
+    eligibleLegKeys.has(`${l.date}|${l.description}|${l.account}`),
+  );
 
   // Filter by account patterns
   if (ctx.filter.accountPatterns.length > 0) {
-    filtered = filtered.filter(l =>
-      ctx.filter.accountPatterns.some(p => matchPattern(l.account, p))
+    filtered = filtered.filter((l) =>
+      ctx.filter.accountPatterns.some((p) => matchPattern(l.account, p)),
     );
   }
 
   // Filter by direction (local state, not global filter)
   if (directionFilter !== 'all') {
-    filtered = filtered.filter(l => (l.amount < 0 ? 'out' : 'in') === directionFilter);
+    filtered = filtered.filter((l) => (l.amount < 0 ? 'out' : 'in') === directionFilter);
   }
 
   // KPI from unfiltered X legs (all transfers in period)
@@ -113,9 +132,13 @@ export async function renderTransfers(
   // Monthly chart
   const monthly = extractMonthlyAmounts(monthlyStdout);
   if (monthly.months.length > 1) {
-    const monthLabels = monthly.months.map(m => {
+    const monthLabels = monthly.months.map((m) => {
       const parts = m.split('-');
-      return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(parts[1]) - 1] || m;
+      return (
+        ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][
+          parseInt(parts[1], 10) - 1
+        ] || m
+      );
     });
     container.createEl('br');
     container.createEl('h3', { text: 'Monthly Transfer Volume' });
@@ -139,23 +162,35 @@ export async function renderTransfers(
       text: 'All',
     });
     allBtn.addEventListener('click', () => {
-      if (directionFilter !== 'all') { directionFilter = 'all'; ctx.onUIStateChange?.({ directionFilter: 'all' }); renderTransfers(container, client, ctx); }
+      if (directionFilter !== 'all') {
+        directionFilter = 'all';
+        ctx.onUIStateChange?.({ directionFilter: 'all' });
+        renderTransfers(container, client, ctx);
+      }
     });
     const outBtn = toggleRow.createEl('button', {
       cls: `hldg-view-toggle-btn${directionFilter === 'out' ? ' hldg-view-toggle-active' : ''}`,
       text: 'Out',
     });
     outBtn.addEventListener('click', () => {
-      if (directionFilter !== 'out') { directionFilter = 'out'; ctx.onUIStateChange?.({ directionFilter: 'out' }); renderTransfers(container, client, ctx); }
+      if (directionFilter !== 'out') {
+        directionFilter = 'out';
+        ctx.onUIStateChange?.({ directionFilter: 'out' });
+        renderTransfers(container, client, ctx);
+      }
     });
     const inBtn = toggleRow.createEl('button', {
       cls: `hldg-view-toggle-btn${directionFilter === 'in' ? ' hldg-view-toggle-active' : ''}`,
       text: 'In',
     });
     inBtn.addEventListener('click', () => {
-      if (directionFilter !== 'in') { directionFilter = 'in'; ctx.onUIStateChange?.({ directionFilter: 'in' }); renderTransfers(container, client, ctx); }
+      if (directionFilter !== 'in') {
+        directionFilter = 'in';
+        ctx.onUIStateChange?.({ directionFilter: 'in' });
+        renderTransfers(container, client, ctx);
+      }
     });
-    const rows: Row[] = filtered.map(l => [
+    const rows: Row[] = filtered.map((l) => [
       l.date,
       l.description,
       {
@@ -166,7 +201,9 @@ export async function renderTransfers(
       l.amount < 0
         ? {
             text: 'Out',
-            cls: 'hldg-direction-pill hldg-direction-out' + (directionFilter === 'out' ? ' hldg-direction-active' : ''),
+            cls:
+              'hldg-direction-pill hldg-direction-out' +
+              (directionFilter === 'out' ? ' hldg-direction-active' : ''),
             onClick: () => {
               directionFilter = directionFilter === 'out' ? 'all' : 'out';
               ctx.onUIStateChange?.({ directionFilter });
@@ -175,7 +212,9 @@ export async function renderTransfers(
           }
         : {
             text: 'In',
-            cls: 'hldg-direction-pill hldg-direction-in' + (directionFilter === 'in' ? ' hldg-direction-active' : ''),
+            cls:
+              'hldg-direction-pill hldg-direction-in' +
+              (directionFilter === 'in' ? ' hldg-direction-active' : ''),
             onClick: () => {
               directionFilter = directionFilter === 'in' ? 'all' : 'in';
               ctx.onUIStateChange?.({ directionFilter });
@@ -194,7 +233,7 @@ export async function renderTransfers(
         { label: 'Amount', align: 'right' },
       ],
       rows,
-      ctx.settings.recentTxnCount || 50
+      ctx.settings.recentTxnCount || 50,
     );
   }
 

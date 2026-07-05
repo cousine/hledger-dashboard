@@ -1,19 +1,20 @@
 import { Plugin } from 'obsidian';
-import { HledgerDashboardSettings, DashboardUIState, DEFAULT_SETTINGS } from './hledger/types';
+import {
+  type DashboardUIState,
+  DEFAULT_SETTINGS,
+  type HledgerDashboardSettings,
+} from './hledger/types';
 import { HledgerDashboardSettingTab } from './settings';
 import { HledgerDashboardView, VIEW_TYPE_HLEDGER_DASHBOARD } from './view';
 
 export default class HledgerDashboardPlugin extends Plugin {
-  settings: HledgerDashboardSettings;
+  settings!: HledgerDashboardSettings;
   private saveUIStateTimer: number | null = null;
 
   async onload(): Promise<void> {
     await this.loadSettings();
 
-    this.registerView(
-      VIEW_TYPE_HLEDGER_DASHBOARD,
-      (leaf) => new HledgerDashboardView(leaf, this)
-    );
+    this.registerView(VIEW_TYPE_HLEDGER_DASHBOARD, (leaf) => new HledgerDashboardView(leaf, this));
 
     this.addRibbonIcon('dollar-sign', 'Open hledger Dashboard', () => {
       this.activateView();

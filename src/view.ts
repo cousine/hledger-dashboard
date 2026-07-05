@@ -1,21 +1,28 @@
-import { ItemView, WorkspaceLeaf } from 'obsidian';
-import HledgerDashboardPlugin from './main';
-import { DashboardContext, DashboardPeriod, TabFilterState, defaultTabFilter, FilterShortcut, DashboardUIState, DEFAULT_UI_STATE } from './hledger/types';
-import { HledgerClient } from './hledger/client';
+import { ItemView, type WorkspaceLeaf } from 'obsidian';
 import { QueryCache } from './cache';
-import { destroyAllCharts } from './ui/chart';
-import { buildToolbar, buildPresetPeriod, getDefaultDateValue } from './ui/toolbar';
-import { renderTabBar, TabItem } from './ui/tabs';
-import { renderFilterBar, FilterBarCallbacks } from './ui/filterBar';
-import { Dropdown } from './ui/dropdown';
-import { buildAccountTreeContent } from './ui/accountTreePicker';
-import { buildCurrencyContent } from './ui/currencyPicker';
-import { renderBalanceSheet } from './tabs/balanceSheet';
+import { HledgerClient } from './hledger/client';
+import { SAMPLE_JOURNAL } from './hledger/sampleJournal';
+import {
+  type DashboardContext,
+  type DashboardPeriod,
+  type DashboardUIState,
+  DEFAULT_UI_STATE,
+  defaultTabFilter,
+  type TabFilterState,
+} from './hledger/types';
+import type HledgerDashboardPlugin from './main';
 import { renderActivity } from './tabs/activity';
+import { renderBalanceSheet } from './tabs/balanceSheet';
 import { renderBudget } from './tabs/budget';
 import { renderTransactions } from './tabs/transactions';
 import { renderTransfers } from './tabs/transfers';
-import { SAMPLE_JOURNAL } from './hledger/sampleJournal';
+import { buildAccountTreeContent } from './ui/accountTreePicker';
+import { destroyAllCharts } from './ui/chart';
+import { buildCurrencyContent } from './ui/currencyPicker';
+import { Dropdown } from './ui/dropdown';
+import { type FilterBarCallbacks, renderFilterBar } from './ui/filterBar';
+import { renderTabBar, type TabItem } from './ui/tabs';
+import { buildPresetPeriod, buildToolbar, getDefaultDateValue } from './ui/toolbar';
 
 export const VIEW_TYPE_HLEDGER_DASHBOARD = 'hledger-dashboard-view';
 
@@ -51,7 +58,9 @@ export class HledgerDashboardView extends ItemView {
   constructor(leaf: WorkspaceLeaf, plugin: HledgerDashboardPlugin) {
     super(leaf);
     this.plugin = plugin;
-    const vaultRoot = (this.app.vault.adapter as any).getBasePath();
+    const vaultRoot = (
+      this.app.vault.adapter as unknown as { getBasePath: () => string }
+    ).getBasePath();
     this.client = new HledgerClient(vaultRoot);
     this.cache = new QueryCache();
 
@@ -61,7 +70,10 @@ export class HledgerDashboardView extends ItemView {
 
     const today = getDefaultDateValue();
     if (saved.periodPreset && saved.periodPreset !== 'custom') {
-      this.currentPeriod = buildPresetPeriod(saved.periodPreset as DashboardPeriod['preset'], today);
+      this.currentPeriod = buildPresetPeriod(
+        saved.periodPreset as DashboardPeriod['preset'],
+        today,
+      );
     } else if (saved.periodPreset === 'custom' && saved.periodStartDate && saved.periodEndDate) {
       this.currentPeriod = {
         startDate: saved.periodStartDate,
@@ -80,9 +92,15 @@ export class HledgerDashboardView extends ItemView {
     };
   }
 
-  getViewType(): string { return VIEW_TYPE_HLEDGER_DASHBOARD; }
-  getDisplayText(): string { return 'hledger Dashboard'; }
-  getIcon(): string { return 'dollar-sign'; }
+  getViewType(): string {
+    return VIEW_TYPE_HLEDGER_DASHBOARD;
+  }
+  getDisplayText(): string {
+    return 'hledger Dashboard';
+  }
+  getIcon(): string {
+    return 'dollar-sign';
+  }
 
   async onOpen(): Promise<void> {
     const { contentEl } = this;
@@ -102,11 +120,17 @@ export class HledgerDashboardView extends ItemView {
 
   private async isConfigured(): Promise<{ ok: boolean; reason?: string }> {
     if (!this.plugin.settings.journalFile) {
-      return { ok: false, reason: 'Journal file not configured. Open Settings to set the path to your .journal file.' };
+      return {
+        ok: false,
+        reason: 'Journal file not configured. Open Settings to set the path to your .journal file.',
+      };
     }
     const exists = await this.app.vault.adapter.exists(this.plugin.settings.journalFile);
     if (!exists) {
-      return { ok: false, reason: `Journal file not found at "${this.plugin.settings.journalFile}". Place the file at your vault root or update the path in Settings.` };
+      return {
+        ok: false,
+        reason: `Journal file not found at "${this.plugin.settings.journalFile}". Place the file at your vault root or update the path in Settings.`,
+      };
     }
     try {
       await this.client.testConnection(this.plugin.settings.hledgerPath);
@@ -135,12 +159,14 @@ export class HledgerDashboardView extends ItemView {
     const step1 = steps.createEl('li');
     step1.createEl('strong', { text: 'Install hledger' });
     step1.createEl('br');
-    step1.appendText('Ensure hledger 1.52+ is installed and available (run "hledger --version" to verify).');
+    step1.appendText(
+      'Ensure hledger 1.52+ is installed and available (run "hledger --version" to verify).',
+    );
 
     const step2 = steps.createEl('li');
     const btn = step2.createEl('button', { text: 'Open Settings', cls: 'mod-cta' });
     btn.addEventListener('click', () => {
-      (this.app as any).setting.open();
+      (this.app as unknown as { setting: { open: () => void } }).setting.open();
     });
     step2.appendText('  Set the journal file path and target currency.');
 
@@ -153,8 +179,13 @@ export class HledgerDashboardView extends ItemView {
 
     card.createEl('hr');
     const sampleSection = card.createDiv({ cls: 'hldg-onboarding-sample' });
-    sampleSection.createEl('p', { text: 'Just exploring? Load the bundled sample journal to see the dashboard in action.' });
-    const sampleBtn = sampleSection.createEl('button', { text: 'Load sample journal', cls: 'mod-cta' });
+    sampleSection.createEl('p', {
+      text: 'Just exploring? Load the bundled sample journal to see the dashboard in action.',
+    });
+    const sampleBtn = sampleSection.createEl('button', {
+      text: 'Load sample journal',
+      cls: 'mod-cta',
+    });
     sampleBtn.addEventListener('click', async () => {
       try {
         await this.app.vault.adapter.write('sample.journal', SAMPLE_JOURNAL);
@@ -162,7 +193,10 @@ export class HledgerDashboardView extends ItemView {
         await this.plugin.saveSettings();
         this.refresh();
       } catch (err) {
-        sampleSection.createEl('p', { text: `Could not load sample: ${err instanceof Error ? err.message : String(err)}`, cls: 'hldg-onboarding-detail' });
+        sampleSection.createEl('p', {
+          text: `Could not load sample: ${err instanceof Error ? err.message : String(err)}`,
+          cls: 'hldg-onboarding-detail',
+        });
       }
     });
 
@@ -176,7 +210,7 @@ export class HledgerDashboardView extends ItemView {
     try {
       this.commodities = await this.client.getCommodities(
         this.plugin.settings.hledgerPath,
-        this.plugin.settings.journalFile
+        this.plugin.settings.journalFile,
       );
     } catch {
       this.commodities = [];
@@ -187,7 +221,7 @@ export class HledgerDashboardView extends ItemView {
     try {
       this.availableYears = await this.client.getAvailableYears(
         this.plugin.settings.hledgerPath,
-        this.plugin.settings.journalFile
+        this.plugin.settings.journalFile,
       );
     } catch {
       this.availableYears = [];
@@ -197,7 +231,11 @@ export class HledgerDashboardView extends ItemView {
   private buildToolbar(): void {
     const result = buildToolbar(
       this.toolbarContainer,
-      { period: this.currentPeriod, availableYears: this.availableYears, selectedYear: this.uiState.selectedYear },
+      {
+        period: this.currentPeriod,
+        availableYears: this.availableYears,
+        selectedYear: this.uiState.selectedYear,
+      },
       {
         onPeriodChange: async (p: DashboardPeriod) => {
           this.currentPeriod = p;
@@ -235,7 +273,7 @@ export class HledgerDashboardView extends ItemView {
           });
           this.renderActiveTab();
         },
-      }
+      },
     );
     this.refreshBtn = result.refreshBtn;
     this.errorEl = result.errorEl;
@@ -252,32 +290,49 @@ export class HledgerDashboardView extends ItemView {
   }
 
   private buildFilterBar(): void {
-    renderFilterBar(this.filterBarContainer, this.filterState, this.plugin.settings.filterShortcuts || [], this.getFilterCallbacks());
+    renderFilterBar(
+      this.filterBarContainer,
+      this.filterState,
+      this.plugin.settings.filterShortcuts || [],
+      this.getFilterCallbacks(),
+    );
   }
 
   private getFilterCallbacks(): FilterBarCallbacks {
     return {
       onOpenAccountPicker: (anchorEl) => this.openAccountPicker(anchorEl),
       onRemoveAccountPattern: (pat) => {
-        this.filterState.accountPatterns = this.filterState.accountPatterns.filter(p => p !== pat);
+        this.filterState.accountPatterns = this.filterState.accountPatterns.filter(
+          (p) => p !== pat,
+        );
         this.plugin.saveUIState({ filterAccountPatterns: this.filterState.accountPatterns });
-        this.buildFilterBar(); this.renderActiveTab();
+        this.buildFilterBar();
+        this.renderActiveTab();
       },
       onOpenCurrencyPicker: (anchorEl) => this.openCurrencyPicker(anchorEl),
       onRemoveCurrency: (c) => {
-        this.filterState.currencies = this.filterState.currencies.filter(x => x !== c);
+        this.filterState.currencies = this.filterState.currencies.filter((x) => x !== c);
         this.plugin.saveUIState({ filterCurrencies: this.filterState.currencies });
-        this.buildFilterBar(); this.renderActiveTab();
+        this.buildFilterBar();
+        this.renderActiveTab();
       },
       onClearFilters: () => {
         this.filterState = defaultTabFilter();
         this.plugin.saveUIState({ filterAccountPatterns: [], filterCurrencies: [] });
-        this.buildFilterBar(); this.renderActiveTab();
+        this.buildFilterBar();
+        this.renderActiveTab();
       },
       onApplyShortcut: (sc) => {
-        this.filterState = { accountPatterns: [...sc.accountPatterns], currencies: [...sc.currencies] };
-        this.plugin.saveUIState({ filterAccountPatterns: this.filterState.accountPatterns, filterCurrencies: this.filterState.currencies });
-        this.buildFilterBar(); this.renderActiveTab();
+        this.filterState = {
+          accountPatterns: [...sc.accountPatterns],
+          currencies: [...sc.currencies],
+        };
+        this.plugin.saveUIState({
+          filterAccountPatterns: this.filterState.accountPatterns,
+          filterCurrencies: this.filterState.currencies,
+        });
+        this.buildFilterBar();
+        this.renderActiveTab();
       },
     };
   }
@@ -285,8 +340,13 @@ export class HledgerDashboardView extends ItemView {
   private async openAccountPicker(anchorEl: HTMLElement): Promise<void> {
     let treeText = '';
     try {
-      treeText = await this.client.getAccountTree(this.plugin.settings.hledgerPath, this.plugin.settings.journalFile);
-    } catch { treeText = ''; }
+      treeText = await this.client.getAccountTree(
+        this.plugin.settings.hledgerPath,
+        this.plugin.settings.journalFile,
+      );
+    } catch {
+      treeText = '';
+    }
 
     const shared = { selected: new Set(this.filterState.accountPatterns) };
     const syncFilter = () => {
@@ -295,9 +355,15 @@ export class HledgerDashboardView extends ItemView {
       this.buildFilterBar();
       this.renderActiveTab();
     };
-    const dd = new Dropdown(anchorEl, (panel, _close) => {
-      buildAccountTreeContent(panel, treeText, shared.selected, syncFilter);
-    }, () => { this.currentDropdown = null; });
+    const dd = new Dropdown(
+      anchorEl,
+      (panel, _close) => {
+        buildAccountTreeContent(panel, treeText, shared.selected, syncFilter);
+      },
+      () => {
+        this.currentDropdown = null;
+      },
+    );
     this.currentDropdown = dd;
   }
 
@@ -310,9 +376,13 @@ export class HledgerDashboardView extends ItemView {
       this.buildFilterBar();
       this.renderActiveTab();
     };
-    const dd = new Dropdown(anchorEl, (panel, _close) => {
-      buildCurrencyContent(panel, commodities, shared.selected, syncFilter);
-    }, undefined);
+    const _dd = new Dropdown(
+      anchorEl,
+      (panel, _close) => {
+        buildCurrencyContent(panel, commodities, shared.selected, syncFilter);
+      },
+      undefined,
+    );
   }
 
   private async initShell(): Promise<void> {
@@ -348,7 +418,7 @@ export class HledgerDashboardView extends ItemView {
     const ctx: DashboardContext = {
       settings: this.plugin.settings,
       period: this.currentPeriod,
-      vaultRoot: (this.app.vault.adapter as any).getBasePath(),
+      vaultRoot: (this.app.vault.adapter as unknown as { getBasePath: () => string }).getBasePath(),
       hledgerPath: this.plugin.settings.hledgerPath,
       commodities: this.commodities,
       targetCurrency: this.plugin.settings.targetCurrency,
@@ -382,18 +452,31 @@ export class HledgerDashboardView extends ItemView {
     try {
       const tempDiv = document.createElement('div');
       switch (this.activeTabId) {
-        case 'balance-sheet': await renderBalanceSheet(tempDiv, this.client, ctx); break;
-        case 'activity': await renderActivity(tempDiv, this.client, ctx); break;
-        case 'budget': await renderBudget(tempDiv, this.client, ctx); break;
-        case 'transactions': await renderTransactions(tempDiv, this.client, ctx); break;
-        case 'transfers': await renderTransfers(tempDiv, this.client, ctx); break;
+        case 'balance-sheet':
+          await renderBalanceSheet(tempDiv, this.client, ctx);
+          break;
+        case 'activity':
+          await renderActivity(tempDiv, this.client, ctx);
+          break;
+        case 'budget':
+          await renderBudget(tempDiv, this.client, ctx);
+          break;
+        case 'transactions':
+          await renderTransactions(tempDiv, this.client, ctx);
+          break;
+        case 'transfers':
+          await renderTransfers(tempDiv, this.client, ctx);
+          break;
       }
       this.contentContainer.empty();
       this.contentContainer.appendChild(tempDiv);
       this.contentContainer.scrollTop = Math.min(savedScroll, this.contentContainer.scrollHeight);
-    } catch (err: any) {
+    } catch (err: unknown) {
       this.contentContainer.empty();
-      this.errorContainer.createDiv({ cls: 'hldg-error', text: `Failed to render tab:\n${err.message || String(err)}` });
+      this.errorContainer.createDiv({
+        cls: 'hldg-error',
+        text: `Failed to render tab:\n${err instanceof Error ? err.message : String(err)}`,
+      });
     }
 
     this.refreshBtn.disabled = false;

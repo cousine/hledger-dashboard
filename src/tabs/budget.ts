@@ -1,28 +1,43 @@
-import { DashboardContext } from '../hledger/types';
-import { HledgerClient } from '../hledger/client';
-import { buildKpiRow, buildKpiCard } from '../ui/kpi';
-import { createPaginatedTable, Row } from '../ui/table';
-import { createBarChart, createLineChart } from '../ui/chart';
-import { formatAmount, PALETTE } from '../format';
 import { buildHledgerAccountArgs } from '../filters';
-import { parseCsvLine, parseAmount, extractMonthlyData, extractMonthlyAssetsByGroup } from '../hledger/parse';
+import { formatAmount, PALETTE } from '../format';
+import type { HledgerClient } from '../hledger/client';
+import {
+  extractMonthlyAssetsByGroup,
+  extractMonthlyData,
+  parseAmount,
+  parseCsvLine,
+} from '../hledger/parse';
+import type { DashboardContext } from '../hledger/types';
+import { createBarChart, createLineChart } from '../ui/chart';
+import { buildKpiCard, buildKpiRow } from '../ui/kpi';
+import { createPaginatedTable, type Row } from '../ui/table';
 
 export async function renderBudget(
   container: HTMLElement,
   client: HledgerClient,
-  ctx: DashboardContext
+  ctx: DashboardContext,
 ): Promise<void> {
   container.empty();
   container.createEl('h2', { text: 'Budget vs Actual' });
 
   const expenseLiabAccountArgs = buildHledgerAccountArgs(ctx.filter, ['expenses:', 'liabilities:']);
 
-  const stdout = await client.exec(ctx.settings.hledgerPath, [
-    'balance', ...expenseLiabAccountArgs, '--budget',
-    '-X', ctx.targetCurrency,
-    '-p', ctx.period.hledgerPeriod,
-    '-O', 'csv', '--no-total',
-  ], ctx.settings.journalFile);
+  const stdout = await client.exec(
+    ctx.settings.hledgerPath,
+    [
+      'balance',
+      ...expenseLiabAccountArgs,
+      '--budget',
+      '-X',
+      ctx.targetCurrency,
+      '-p',
+      ctx.period.hledgerPeriod,
+      '-O',
+      'csv',
+      '--no-total',
+    ],
+    ctx.settings.journalFile,
+  );
 
   const lines = stdout.trim().split('\n');
   if (lines.length < 2) {
@@ -31,7 +46,7 @@ export async function renderBudget(
   }
 
   const headerCols = parseCsvLine(lines[0]);
-  const budgetColIdx = headerCols.findIndex(c => c.replace(/"/g, '').trim() === 'budget');
+  const budgetColIdx = headerCols.findIndex((c) => c.replace(/"/g, '').trim() === 'budget');
   if (budgetColIdx < 0) {
     container.createEl('p', { text: 'No budget column found', cls: 'hldg-empty' });
     return;
@@ -44,7 +59,10 @@ export async function renderBudget(
     const cols = parseCsvLine(lines[i]);
     if (cols.length < 3) continue;
     const account = cols[0].trim();
-    if ((account.startsWith('expenses:') && account !== 'expenses') || (account.startsWith('liabilities:') && account !== 'liabilities')) {
+    if (
+      (account.startsWith('expenses:') && account !== 'expenses') ||
+      (account.startsWith('liabilities:') && account !== 'liabilities')
+    ) {
       accountNames.push(account);
     }
   }
@@ -56,8 +74,13 @@ export async function renderBudget(
     const actualVal = parseAmount(cols[budgetColIdx === 1 ? 2 : 1] || '');
     const budgetVal = parseAmount(cols[budgetColIdx] || '');
     if (budgetVal.quantity === 0 && actualVal.quantity === 0) continue;
-    if ((!account.startsWith('expenses:') && !account.startsWith('liabilities:')) || account === 'expenses' || account === 'liabilities') continue;
-    if (accountNames.some(a => a !== account && a.startsWith(account + ':'))) continue;
+    if (
+      (!account.startsWith('expenses:') && !account.startsWith('liabilities:')) ||
+      account === 'expenses' ||
+      account === 'liabilities'
+    )
+      continue;
+    if (accountNames.some((a) => a !== account && a.startsWith(`${account}:`))) continue;
     const isLiability = account.startsWith('liabilities:');
     budgetData.push({
       account: account.replace(/^(?:expenses|liabilities):/, ''),
@@ -69,12 +92,20 @@ export async function renderBudget(
 
   const todayStr = new Date().toISOString().substring(0, 10);
   try {
-    const futureStdout = await client.exec(ctx.settings.hledgerPath, [
-      'register', ...expenseLiabAccountArgs,
-      '-p', `${todayStr}..`,
-      '-X', ctx.targetCurrency,
-      '-O', 'csv',
-    ], ctx.settings.journalFile);
+    const futureStdout = await client.exec(
+      ctx.settings.hledgerPath,
+      [
+        'register',
+        ...expenseLiabAccountArgs,
+        '-p',
+        `${todayStr}..`,
+        '-X',
+        ctx.targetCurrency,
+        '-O',
+        'csv',
+      ],
+      ctx.settings.journalFile,
+    );
 
     const futureLines = futureStdout.trim().split('\n');
     if (futureLines.length > 1) {
@@ -83,12 +114,17 @@ export async function renderBudget(
         const cols = parseCsvLine(futureLines[i]);
         if (cols.length < 6) continue;
         const account = cols[4].trim();
-        if ((!account.startsWith('expenses:') && !account.startsWith('liabilities:')) || account === 'expenses' || account === 'liabilities') continue;
+        if (
+          (!account.startsWith('expenses:') && !account.startsWith('liabilities:')) ||
+          account === 'expenses' ||
+          account === 'liabilities'
+        )
+          continue;
         const amt = parseAmount(cols[5] || '');
         if (amt.quantity <= 0) continue;
         futureActuals.set(account, (futureActuals.get(account) || 0) + amt.quantity);
       }
-      const existingAccounts = new Set(budgetData.map(d => d.account));
+      const existingAccounts = new Set(budgetData.map((d) => d.account));
       for (const [account, total] of futureActuals) {
         const stripped = account.replace(/^(?:expenses|liabilities):/, '');
         if (existingAccounts.has(stripped)) continue;
@@ -115,30 +151,38 @@ export async function renderBudget(
   const kpiRow = buildKpiRow(container);
   buildKpiCard(kpiRow, 'Budget', formatAmount(totalBudget, ctx.targetCurrency), '');
   buildKpiCard(kpiRow, 'Actual', formatAmount(totalActual, ctx.targetCurrency), '');
-  buildKpiCard(kpiRow, 'Remaining', formatAmount(totalBudget - totalActual, ctx.targetCurrency),
-    totalBudget - totalActual >= 0 ? 'hldg-value-positive' : 'hldg-value-negative');
+  buildKpiCard(
+    kpiRow,
+    'Remaining',
+    formatAmount(totalBudget - totalActual, ctx.targetCurrency),
+    totalBudget - totalActual >= 0 ? 'hldg-value-positive' : 'hldg-value-negative',
+  );
 
   if (budgetData.length > 0) {
     const chartContainer = container.createDiv({ cls: 'hldg-chart-mount' });
-    createBarChart(chartContainer, budgetData.map(d => d.account), [
-      {
-        label: 'Budget',
-        data: budgetData.map(d => d.budget),
-        backgroundColor: '#7aa2f7',
-      },
-      {
-        label: 'Actual',
-        data: budgetData.map(d => d.actual),
-        backgroundColor: '#9ece6a',
-      },
-    ]);
+    createBarChart(
+      chartContainer,
+      budgetData.map((d) => d.account),
+      [
+        {
+          label: 'Budget',
+          data: budgetData.map((d) => d.budget),
+          backgroundColor: '#7aa2f7',
+        },
+        {
+          label: 'Actual',
+          data: budgetData.map((d) => d.actual),
+          backgroundColor: '#9ece6a',
+        },
+      ],
+    );
   }
 
   container.createEl('br');
 
-  const rows: Row[] = budgetData.map(d => {
+  const rows: Row[] = budgetData.map((d) => {
     const remaining = d.budget - d.actual;
-    const pct = d.budget > 0 ? ((d.actual / d.budget) * 100).toFixed(0) + '%' : '';
+    const pct = d.budget > 0 ? `${((d.actual / d.budget) * 100).toFixed(0)}%` : '';
     const pctVal = d.budget > 0 ? (d.actual / d.budget) * 100 : 0;
     return [
       d.account,
@@ -159,60 +203,96 @@ export async function renderBudget(
       { label: '% Used', align: 'right' },
     ],
     rows,
-    ctx.settings.recentTxnCount || 50
+    ctx.settings.recentTxnCount || 50,
   );
 
   // Forecast
   const yearStr = ctx.period.startDate.substring(0, 4);
   const today = new Date();
   const currentMonth = today.getMonth();
-  const chartYear = parseInt(yearStr);
-  const chartCurrentMonth = chartYear < today.getFullYear() ? 11 :
-                            chartYear > today.getFullYear() ? -1 :
-                            currentMonth;
+  const chartYear = parseInt(yearStr, 10);
+  const chartCurrentMonth =
+    chartYear < today.getFullYear() ? 11 : chartYear > today.getFullYear() ? -1 : currentMonth;
 
   try {
     const fullYearPeriod = `${yearStr}-01-01..${yearStr}-12-31`;
-    const forecastAllAccountArgs = buildHledgerAccountArgs(ctx.filter, ['^income:', '^expenses:', '^liabilities:']);
+    const forecastAllAccountArgs = buildHledgerAccountArgs(ctx.filter, [
+      '^income:',
+      '^expenses:',
+      '^liabilities:',
+    ]);
     const forecastAssetAccountArgs = buildHledgerAccountArgs(ctx.filter, ['assets']);
-    const forecastBudgetAccountArgs = buildHledgerAccountArgs(ctx.filter, ['income:', 'expenses:', 'liabilities:']);
+    const forecastBudgetAccountArgs = buildHledgerAccountArgs(ctx.filter, [
+      'income:',
+      'expenses:',
+      'liabilities:',
+    ]);
     const [monthlyStdout, budgetStdout, assetsStdout] = await Promise.all([
-      client.exec(ctx.settings.hledgerPath, [
-        'balance', ...forecastAllAccountArgs,
-        '--depth', '1',
-        '--monthly',
-        '-X', ctx.targetCurrency,
-        '-p', fullYearPeriod,
-        '-O', 'json',
-      ], ctx.settings.journalFile),
-      client.exec(ctx.settings.hledgerPath, [
-        'balance', ...forecastBudgetAccountArgs, '--budget',
-        '-X', ctx.targetCurrency,
-        '-p', fullYearPeriod,
-        '-O', 'csv', '--no-total',
-      ], ctx.settings.journalFile),
-      client.exec(ctx.settings.hledgerPath, [
-        'balance', ...forecastAssetAccountArgs,
-        '--monthly', '-H',
-        '-X', ctx.targetCurrency,
-        '--depth', '2',
-        '-p', fullYearPeriod,
-        '-O', 'json',
-      ], ctx.settings.journalFile),
+      client.exec(
+        ctx.settings.hledgerPath,
+        [
+          'balance',
+          ...forecastAllAccountArgs,
+          '--depth',
+          '1',
+          '--monthly',
+          '-X',
+          ctx.targetCurrency,
+          '-p',
+          fullYearPeriod,
+          '-O',
+          'json',
+        ],
+        ctx.settings.journalFile,
+      ),
+      client.exec(
+        ctx.settings.hledgerPath,
+        [
+          'balance',
+          ...forecastBudgetAccountArgs,
+          '--budget',
+          '-X',
+          ctx.targetCurrency,
+          '-p',
+          fullYearPeriod,
+          '-O',
+          'csv',
+          '--no-total',
+        ],
+        ctx.settings.journalFile,
+      ),
+      client.exec(
+        ctx.settings.hledgerPath,
+        [
+          'balance',
+          ...forecastAssetAccountArgs,
+          '--monthly',
+          '-H',
+          '-X',
+          ctx.targetCurrency,
+          '--depth',
+          '2',
+          '-p',
+          fullYearPeriod,
+          '-O',
+          'json',
+        ],
+        ctx.settings.journalFile,
+      ),
     ]);
 
     const monthly = extractMonthlyData(monthlyStdout);
     if (monthly.months.length < 2) return;
 
     const monthlyAssets = extractMonthlyAssetsByGroup(assetsStdout);
-    const groupNames = Object.keys(monthlyAssets.groups).filter(g => g !== 'property');
+    const groupNames = Object.keys(monthlyAssets.groups).filter((g) => g !== 'property');
     if (groupNames.length < 1 || monthlyAssets.months.length < 2) return;
 
     const budgetLines = budgetStdout.trim().split('\n');
     if (budgetLines.length < 2) return;
 
     const budgetHeaderCols = parseCsvLine(budgetLines[0]);
-    const budgetIdx = budgetHeaderCols.findIndex(c => c.replace(/"/g, '').trim() === 'budget');
+    const budgetIdx = budgetHeaderCols.findIndex((c) => c.replace(/"/g, '').trim() === 'budget');
     if (budgetIdx < 0) return;
 
     const acctNames: string[] = [];
@@ -220,7 +300,11 @@ export async function renderBudget(
       const cols = parseCsvLine(budgetLines[i]);
       if (cols.length < 3) continue;
       const a = cols[0].trim();
-      if ((a.startsWith('income:') && a !== 'income') || (a.startsWith('expenses:') && a !== 'expenses') || (a.startsWith('liabilities:') && a !== 'liabilities')) {
+      if (
+        (a.startsWith('income:') && a !== 'income') ||
+        (a.startsWith('expenses:') && a !== 'expenses') ||
+        (a.startsWith('liabilities:') && a !== 'liabilities')
+      ) {
         acctNames.push(a);
       }
     }
@@ -231,8 +315,14 @@ export async function renderBudget(
       const cols = parseCsvLine(budgetLines[i]);
       if (cols.length < 3) continue;
       const a = cols[0].trim();
-      if ((!a.startsWith('income:') && !a.startsWith('expenses:') && !a.startsWith('liabilities:')) || a === 'income' || a === 'expenses' || a === 'liabilities') continue;
-      if (acctNames.some(x => x !== a && x.startsWith(a + ':'))) continue;
+      if (
+        (!a.startsWith('income:') && !a.startsWith('expenses:') && !a.startsWith('liabilities:')) ||
+        a === 'income' ||
+        a === 'expenses' ||
+        a === 'liabilities'
+      )
+        continue;
+      if (acctNames.some((x) => x !== a && x.startsWith(`${a}:`))) continue;
       const bv = parseAmount(cols[budgetIdx] || '');
       if (a.startsWith('income:')) {
         fullAnnualIncomeBudget += Math.abs(bv.quantity);
@@ -244,10 +334,29 @@ export async function renderBudget(
     const fullMonthlyBudget = fullAnnualBudget / 12;
     const fullMonthlyIncomeBudget = fullAnnualIncomeBudget / 12;
     const pastIncome = chartCurrentMonth >= 0 ? monthly.income.slice(0, chartCurrentMonth + 1) : [];
-    const avgIncome = pastIncome.length > 0 ? pastIncome.reduce((s: number, v: number) => s + v, 0) / pastIncome.length : 0;
-    const netDelta = fullMonthlyIncomeBudget > 0 ? fullMonthlyIncomeBudget - fullMonthlyBudget : avgIncome - fullMonthlyBudget;
+    const avgIncome =
+      pastIncome.length > 0
+        ? pastIncome.reduce((s: number, v: number) => s + v, 0) / pastIncome.length
+        : 0;
+    const netDelta =
+      fullMonthlyIncomeBudget > 0
+        ? fullMonthlyIncomeBudget - fullMonthlyBudget
+        : avgIncome - fullMonthlyBudget;
 
-    const monthLabels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const monthLabels = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
 
     const expenseActual: (number | null)[] = new Array(12).fill(null);
     const expensePredicted: (number | null)[] = new Array(12).fill(null);
@@ -267,9 +376,12 @@ export async function renderBudget(
         }
       }
       if (i >= chartCurrentMonth) {
-        const futExp = i > chartCurrentMonth ? (monthly.expenses[i] || 0) : 0;
+        const futExp = i > chartCurrentMonth ? monthly.expenses[i] || 0 : 0;
         const futLiab = i > chartCurrentMonth ? Math.abs(monthly.liabilities[i] || 0) : 0;
-        const exp = i === chartCurrentMonth ? (monthly.expenses[i] || 0) + (monthly.liabilities[i] || 0) : fullMonthlyBudget + futExp + futLiab;
+        const exp =
+          i === chartCurrentMonth
+            ? (monthly.expenses[i] || 0) + (monthly.liabilities[i] || 0)
+            : fullMonthlyBudget + futExp + futLiab;
         expensePredicted[i] = exp;
       }
     }
@@ -317,7 +429,7 @@ export async function renderBudget(
         label: g.charAt(0).toUpperCase() + g.slice(1),
         data: groupActual[g],
         borderColor: color,
-        backgroundColor: color + '33',
+        backgroundColor: `${color}33`,
         fill: true,
       });
     });
@@ -334,10 +446,10 @@ export async function renderBudget(
       groupNames.forEach((g, i) => {
         const color = g === 'bank' ? '#7aa2f7' : PALETTE[(i + 3) % PALETTE.length];
         datasets.push({
-          label: g.charAt(0).toUpperCase() + g.slice(1) + ' (predicted)',
+          label: `${g.charAt(0).toUpperCase() + g.slice(1)} (predicted)`,
           data: groupPredicted[g],
           borderColor: color,
-          backgroundColor: color + '15',
+          backgroundColor: `${color}15`,
           fill: true,
           borderDash: [4, 4],
         });

@@ -1,8 +1,8 @@
-import { BalanceEntry } from './hledger/types';
+import type { BalanceEntry } from './hledger/types';
 
 export function groupByDepth(
   entries: BalanceEntry[],
-  targetDepth: number
+  targetDepth: number,
 ): Map<string, BalanceEntry[]> {
   const groups = new Map<string, BalanceEntry[]>();
   for (const e of entries) {
@@ -11,19 +11,17 @@ export function groupByDepth(
     if (parts.length < targetDepth + 1) continue;
     const parent = parts.slice(0, targetDepth + 1).join(':');
     if (!groups.has(parent)) groups.set(parent, []);
-    groups.get(parent)!.push(e);
+    groups.get(parent)?.push(e);
   }
   return groups;
 }
 
-export function groupByTopLevel(
-  entries: BalanceEntry[]
-): Map<string, BalanceEntry[]> {
+export function groupByTopLevel(entries: BalanceEntry[]): Map<string, BalanceEntry[]> {
   const groups = new Map<string, BalanceEntry[]>();
   for (const e of entries) {
     const top = e.account.split(':')[0];
     if (!groups.has(top)) groups.set(top, []);
-    groups.get(top)!.push(e);
+    groups.get(top)?.push(e);
   }
   return groups;
 }
@@ -38,13 +36,11 @@ export function sumAll(entries: BalanceEntry[]): number {
   return entries.reduce((sum, e) => sum + e.amount, 0);
 }
 
-export function groupByCommodity(
-  entries: BalanceEntry[]
-): Map<string, BalanceEntry[]> {
+export function groupByCommodity(entries: BalanceEntry[]): Map<string, BalanceEntry[]> {
   const map = new Map<string, BalanceEntry[]>();
   for (const e of entries) {
     if (!map.has(e.commodity)) map.set(e.commodity, []);
-    map.get(e.commodity)!.push(e);
+    map.get(e.commodity)?.push(e);
   }
   return map;
 }

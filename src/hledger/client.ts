@@ -1,5 +1,5 @@
-import { execFile } from 'child_process';
-import * as path from 'path';
+import { execFile } from 'node:child_process';
+import * as path from 'node:path';
 
 export class HledgerClient {
   private vaultRoot: string;
@@ -14,7 +14,7 @@ export class HledgerClient {
     const extraPaths = isWin
       ? []
       : ['/opt/homebrew/bin', '/usr/local/bin', '/opt/homebrew/sbin', '/usr/bin', '/bin'];
-    const pathKey = Object.keys(process.env).find(k => k.toLowerCase() === 'path') || 'PATH';
+    const pathKey = Object.keys(process.env).find((k) => k.toLowerCase() === 'path') || 'PATH';
     return {
       ...process.env,
       LC_ALL: 'C',
@@ -22,11 +22,7 @@ export class HledgerClient {
     };
   }
 
-  private async execRaw(
-    binaryPath: string,
-    args: string[],
-    journalFile: string
-  ): Promise<string> {
+  private async execRaw(binaryPath: string, args: string[], journalFile: string): Promise<string> {
     const journalAbs = path.resolve(this.vaultRoot, journalFile);
     const fullArgs = ['-f', journalAbs, ...args];
 
@@ -34,7 +30,12 @@ export class HledgerClient {
       execFile(
         binaryPath,
         fullArgs,
-        { cwd: this.vaultRoot, env: this.buildExecEnv(), timeout: 30000, maxBuffer: 10 * 1024 * 1024 },
+        {
+          cwd: this.vaultRoot,
+          env: this.buildExecEnv(),
+          timeout: 30000,
+          maxBuffer: 10 * 1024 * 1024,
+        },
         (error, stdout, stderr) => {
           if (error) {
             const msg = stderr?.trim() || error.message;
@@ -42,16 +43,12 @@ export class HledgerClient {
           } else {
             resolve(stdout);
           }
-        }
+        },
       );
     });
   }
 
-  async exec(
-    binaryPath: string,
-    args: string[],
-    journalFile: string
-  ): Promise<string> {
+  async exec(binaryPath: string, args: string[], journalFile: string): Promise<string> {
     try {
       return await this.execRaw(binaryPath, args, journalFile);
     } catch (err) {
@@ -67,16 +64,9 @@ export class HledgerClient {
     }
   }
 
-  async getCommodities(
-    binaryPath: string,
-    journalFile: string
-  ): Promise<string[]> {
+  async getCommodities(binaryPath: string, journalFile: string): Promise<string[]> {
     try {
-      const out = await this.exec(
-        binaryPath,
-        ['commodities'],
-        journalFile
-      );
+      const out = await this.exec(binaryPath, ['commodities'], journalFile);
       return out
         .trim()
         .split('\n')
@@ -87,17 +77,11 @@ export class HledgerClient {
     }
   }
 
-  async getAccountTree(
-    binaryPath: string,
-    journalFile: string
-  ): Promise<string> {
+  async getAccountTree(binaryPath: string, journalFile: string): Promise<string> {
     return this.exec(binaryPath, ['accounts', '--tree'], journalFile);
   }
 
-  async getAvailableYears(
-    binaryPath: string,
-    journalFile: string
-  ): Promise<number[]> {
+  async getAvailableYears(binaryPath: string, journalFile: string): Promise<number[]> {
     try {
       const out = await this.exec(binaryPath, ['stats'], journalFile);
       const match = out.match(/Txns span\s*:\s*(\d{4})-.*to\s*(\d{4})-/);
@@ -121,7 +105,7 @@ export class HledgerClient {
         (error, stdout, stderr) => {
           if (error) reject(new Error(stderr?.trim() || error.message));
           else resolve(stdout.trim());
-        }
+        },
       );
     });
   }

@@ -1,8 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { HledgerClient } from '../../src/hledger/client';
 
+type ExecCallback = (error: Error | null, stdout: string, stderr: string) => void;
+
 const mockExecFile = vi.hoisted(() => vi.fn());
-vi.mock('child_process', () => ({
+vi.mock('node:child_process', () => ({
   default: { execFile: mockExecFile },
   execFile: mockExecFile,
 }));
@@ -10,13 +12,15 @@ vi.mock('child_process', () => ({
 const vaultRoot = '/fake/vault';
 
 function makeSuccess(stdout: string) {
-  return (_binary: string, _args: string[], _opts: any, cb: Function) => cb(null, stdout, '');
+  return (_binary: string, _args: string[], _opts: Record<string, unknown>, cb: ExecCallback) =>
+    cb(null, stdout, '');
 }
 
 function makeError(stderr: string, code = 1) {
   const error = new Error(stderr);
-  (error as any).code = code;
-  return (_binary: string, _args: string[], _opts: any, cb: Function) => cb(error, '', stderr);
+  (error as { code: number }).code = code;
+  return (_binary: string, _args: string[], _opts: Record<string, unknown>, cb: ExecCallback) =>
+    cb(error, '', stderr);
 }
 
 describe('HledgerClient', () => {
@@ -35,25 +39,32 @@ describe('HledgerClient', () => {
 
     it('rejects with stderr on error', async () => {
       mockExecFile.mockImplementation(makeError('Something broke'));
-      await expect(client.exec('hledger', ['test'], 'j.journal')).rejects.toThrow('Something broke');
+      await expect(client.exec('hledger', ['test'], 'j.journal')).rejects.toThrow(
+        'Something broke',
+      );
     });
 
     it('rejects with error.message when stderr empty', async () => {
       const error = new Error('ENOENT');
-      mockExecFile.mockImplementation((_b: string, _a: string[], _o: any, cb: Function) => cb(error, '', ''));
+      mockExecFile.mockImplementation(
+        (_b: string, _a: string[], _o: Record<string, unknown>, cb: ExecCallback) =>
+          cb(error, '', ''),
+      );
       await expect(client.exec('hledger', ['test'], 'j.journal')).rejects.toThrow('ENOENT');
     });
 
     it('tries fallback paths when default hledger fails', async () => {
       const calls: string[] = [];
-      mockExecFile.mockImplementation((binary: string, _args: string[], _opts: any, cb: Function) => {
-        calls.push(binary);
-        if (binary === 'hledger') {
-          cb(new Error('not found'), '', '');
-        } else {
-          cb(null, 'fallback output', '');
-        }
-      });
+      mockExecFile.mockImplementation(
+        (binary: string, _args: string[], _opts: Record<string, unknown>, cb: ExecCallback) => {
+          calls.push(binary);
+          if (binary === 'hledger') {
+            cb(new Error('not found'), '', '');
+          } else {
+            cb(null, 'fallback output', '');
+          }
+        },
+      );
       const result = await client.exec('hledger', ['test'], 'j.journal');
       expect(result).toBe('fallback output');
       expect(calls).toContain('/opt/homebrew/bin/hledger');
@@ -89,9 +100,7 @@ describe('HledgerClient', () => {
 
   describe('getAvailableYears', () => {
     it('parses Txns span from stats output', async () => {
-      mockExecFile.mockImplementation(makeSuccess(
-        'Txns span  : 2024-01-01 to 2026-06-30\n'
-      ));
+      mockExecFile.mockImplementation(makeSuccess('Txns span  : 2024-01-01 to 2026-06-30\n'));
       const result = await client.getAvailableYears('hledger', 'j.journal');
       expect(result).toEqual([2024, 2025, 2026]);
     });

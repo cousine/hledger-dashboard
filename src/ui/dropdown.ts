@@ -7,7 +7,7 @@ export class Dropdown {
   constructor(
     anchorEl: HTMLElement,
     contentBuilder: (panel: HTMLElement, close: () => void) => void,
-    onClose?: () => void
+    onClose?: () => void,
   ) {
     this.onClose = onClose;
     this.backdrop = document.body.createDiv({ cls: 'hldg-dropdown-backdrop' });
@@ -41,5 +41,7 @@ export class Dropdown {
     if (this.onClose) this.onClose();
   }
 
-  get closed(): boolean { return this._closed; }
+  get closed(): boolean {
+    return this._closed;
+  }
 }

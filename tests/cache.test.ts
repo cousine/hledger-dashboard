@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { QueryCache } from '../src/cache';
 
 describe('QueryCache', () => {
@@ -18,10 +18,7 @@ describe('QueryCache', () => {
     const cache = new QueryCache();
     const fetcher = vi.fn().mockResolvedValue('result');
 
-    const [r1, r2] = await Promise.all([
-      cache.get('key', fetcher),
-      cache.get('key', fetcher),
-    ]);
+    const [r1, r2] = await Promise.all([cache.get('key', fetcher), cache.get('key', fetcher)]);
 
     expect(r1).toBe('result');
     expect(r2).toBe('result');

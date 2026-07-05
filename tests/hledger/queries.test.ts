@@ -1,19 +1,19 @@
-import { describe, it, expect, vi } from 'vitest';
-import { HledgerClient } from '../../src/hledger/client';
+import { describe, expect, it, vi } from 'vitest';
+import type { HledgerClient } from '../../src/hledger/client';
 import {
   getBalances,
   getBalancesFlat,
-  getRegister,
   getBalancesWithBudget,
   getConvertedBalances,
+  getRegister,
 } from '../../src/hledger/queries';
-import { DashboardPeriod } from '../../src/hledger/types';
+import type { DashboardPeriod } from '../../src/hledger/types';
 import {
-  BALANCE_JSON_TREE,
-  REGISTER_JSON,
-  BUDGET_CSV,
   BALANCE_JSON_EMPTY,
+  BALANCE_JSON_TREE,
+  BUDGET_CSV,
   BUDGET_CSV_EMPTY,
+  REGISTER_JSON,
 } from '../fixtures/hledgerOutputs';
 
 function makeClient(stdout: string) {
@@ -31,12 +31,30 @@ const period: DashboardPeriod = {
 describe('getBalances', () => {
   it('calls client.exec with correct args and parses result', async () => {
     const client = makeClient(BALANCE_JSON_TREE);
-    const result = await getBalances(client, 'hledger', 'test.journal', ['^assets:'], period, true, true);
+    const result = await getBalances(
+      client,
+      'hledger',
+      'test.journal',
+      ['^assets:'],
+      period,
+      true,
+      true,
+    );
 
     expect(client.exec).toHaveBeenCalledWith(
       'hledger',
-      ['balance', '^assets:', '-O', 'json', '--no-total', '-H', '--tree', '-p', '2024-01-01..2024-12-31'],
-      'test.journal'
+      [
+        'balance',
+        '^assets:',
+        '-O',
+        'json',
+        '--no-total',
+        '-H',
+        '--tree',
+        '-p',
+        '2024-01-01..2024-12-31',
+      ],
+      'test.journal',
     );
     expect(result.length).toBeGreaterThan(0);
   });
@@ -47,7 +65,7 @@ describe('getBalances', () => {
     expect(client.exec).toHaveBeenCalledWith(
       'hledger',
       ['balance', '-O', 'json', '--no-total'],
-      'test.journal'
+      'test.journal',
     );
   });
 });
@@ -55,12 +73,19 @@ describe('getBalances', () => {
 describe('getBalancesFlat', () => {
   it('calls with flat args', async () => {
     const client = makeClient(BALANCE_JSON_TREE);
-    const result = await getBalancesFlat(client, 'hledger', 'test.journal', 'expenses:', period, false);
+    const result = await getBalancesFlat(
+      client,
+      'hledger',
+      'test.journal',
+      'expenses:',
+      period,
+      false,
+    );
 
     expect(client.exec).toHaveBeenCalledWith(
       'hledger',
       ['balance', 'expenses:', '-O', 'json', '--no-total', '-p', '2024-01-01..2024-12-31'],
-      'test.journal'
+      'test.journal',
     );
     expect(Array.isArray(result)).toBe(true);
   });
@@ -83,7 +108,7 @@ describe('getBalancesWithBudget', () => {
     const result = await getBalancesWithBudget(client, 'hledger', 'test.journal', period);
 
     expect(result.length).toBeGreaterThan(0);
-    expect(result.some(e => e.isBudget)).toBe(true);
+    expect(result.some((e) => e.isBudget)).toBe(true);
   });
 
   it('returns empty when budget column missing', async () => {
@@ -96,12 +121,33 @@ describe('getBalancesWithBudget', () => {
 describe('getConvertedBalances', () => {
   it('adds -X flag', async () => {
     const client = makeClient(BALANCE_JSON_TREE);
-    const result = await getConvertedBalances(client, 'hledger', 'test.journal', ['^assets:'], period, true, true, 'EUR');
+    const result = await getConvertedBalances(
+      client,
+      'hledger',
+      'test.journal',
+      ['^assets:'],
+      period,
+      true,
+      true,
+      'EUR',
+    );
 
     expect(client.exec).toHaveBeenCalledWith(
       'hledger',
-      ['balance', '^assets:', '-X', 'EUR', '-O', 'json', '--no-total', '-H', '--tree', '-p', '2024-01-01..2024-12-31'],
-      'test.journal'
+      [
+        'balance',
+        '^assets:',
+        '-X',
+        'EUR',
+        '-O',
+        'json',
+        '--no-total',
+        '-H',
+        '--tree',
+        '-p',
+        '2024-01-01..2024-12-31',
+      ],
+      'test.journal',
     );
     expect(Array.isArray(result)).toBe(true);
   });

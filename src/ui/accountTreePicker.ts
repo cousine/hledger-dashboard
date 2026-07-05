@@ -17,7 +17,7 @@ export function parseTree(text: string): TreeNode[] {
     const parts = content.split('\n')[0];
     let fullPath = parts;
     while (stack.length > 0 && stack[stack.length - 1].depth >= depth) stack.pop();
-    if (stack.length > 0) fullPath = stack[stack.length - 1].node.fullPath + ':' + parts;
+    if (stack.length > 0) fullPath = `${stack[stack.length - 1].node.fullPath}:${parts}`;
     const node: TreeNode = { name: parts, fullPath, children: [] };
     if (stack.length > 0) stack[stack.length - 1].node.children.push(node);
     else root.push(node);
@@ -26,10 +26,17 @@ export function parseTree(text: string): TreeNode[] {
   return root;
 }
 
-export function selectAll(nodes: TreeNode[], checked: boolean, query: string, selected: Set<string>): void {
+export function selectAll(
+  nodes: TreeNode[],
+  checked: boolean,
+  query: string,
+  selected: Set<string>,
+): void {
   for (const n of nodes) {
     const match = !query || n.fullPath.toLowerCase().includes(query.toLowerCase());
-    if (match) { checked ? selected.add(n.fullPath) : selected.delete(n.fullPath); }
+    if (match) {
+      checked ? selected.add(n.fullPath) : selected.delete(n.fullPath);
+    }
     selectAll(n.children, checked, query, selected);
   }
 }
@@ -74,7 +81,7 @@ function renderNodes(
   selected: Set<string>,
   collapsed: Set<string>,
   onChange?: () => void,
-  onToggle?: () => void
+  onToggle?: () => void,
 ): void {
   const sorted = [...nodes].sort((a, b) => {
     const aChecked = selected.has(a.fullPath) || hasSelectedDescendant(a, selected);
@@ -93,7 +100,10 @@ function renderNodes(
     (item as HTMLElement).style.paddingLeft = `${depth * 18 + 4}px`;
 
     if (node.children.length > 0) {
-      const toggle = item.createEl('span', { cls: 'hldg-dd-toggle', text: collapsed.has(node.fullPath) ? '▶' : '▼' });
+      const toggle = item.createEl('span', {
+        cls: 'hldg-dd-toggle',
+        text: collapsed.has(node.fullPath) ? '▶' : '▼',
+      });
       toggle.addEventListener('click', (e) => {
         e.stopPropagation();
         if (collapsed.has(node.fullPath)) collapsed.delete(node.fullPath);
@@ -109,15 +119,28 @@ function renderNodes(
     const childSelected = hasSelectedDescendant(node, selected);
     cb.checked = nodeSelected || childSelected;
     cb.addEventListener('change', () => {
-      if (cb.checked) { selected.add(node.fullPath); }
-      else { selected.delete(node.fullPath); uncheckChildren(node.children, selected); }
+      if (cb.checked) {
+        selected.add(node.fullPath);
+      } else {
+        selected.delete(node.fullPath);
+        uncheckChildren(node.children, selected);
+      }
       onChange?.();
     });
 
     item.createSpan({ text: node.name });
 
     if (node.children.length > 0 && !(collapsed.has(node.fullPath) && !query)) {
-      renderNodes(container, node.children, depth + 1, query, selected, collapsed, onChange, onToggle);
+      renderNodes(
+        container,
+        node.children,
+        depth + 1,
+        query,
+        selected,
+        collapsed,
+        onChange,
+        onToggle,
+      );
     }
   }
 }
@@ -126,7 +149,7 @@ export function buildAccountTreeContent(
   panel: HTMLElement,
   treeText: string,
   selected: Set<string>,
-  onChange?: () => void
+  onChange?: () => void,
 ): void {
   const tree = parseTree(treeText);
   const collapsed = new Set<string>();
@@ -163,7 +186,16 @@ export function buildAccountTreeContent(
 
   function renderTree() {
     treeContainer.empty();
-    renderNodes(treeContainer, tree, 0, searchQuery, selected, collapsed, handleChange, handleToggle);
+    renderNodes(
+      treeContainer,
+      tree,
+      0,
+      searchQuery,
+      selected,
+      collapsed,
+      handleChange,
+      handleToggle,
+    );
   }
 
   searchInput.addEventListener('input', () => {

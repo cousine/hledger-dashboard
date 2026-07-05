@@ -1,32 +1,31 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  parseAmount,
-  parseCsvLine,
-  extractFromJson,
-  extractFlat,
-  extractMonthlyTrend,
   extractBalanceTimeSeries,
-  extractMonthlyData,
-  extractMonthlyAssetsByGroup,
+  extractFlat,
+  extractFromJson,
   extractMonthlyAmounts,
-  parsePrintTransfers,
+  extractMonthlyAssetsByGroup,
+  extractMonthlyData,
+  extractMonthlyTrend,
   extractRegister,
   getTxnType,
   groupBreakdown,
   isLeaf,
   makeCacheKey,
+  parseAmount,
+  parseCsvLine,
+  parsePrintTransfers,
 } from '../../src/hledger/parse';
 import {
-  BALANCE_JSON_TREE,
+  BALANCE_FLAT_MULTI_COMMODITY,
   BALANCE_JSON_EMPTY,
-  REGISTER_JSON,
-  BUDGET_CSV,
-  MONTHLY_REPORT_JSON,
-  MONTHLY_BUDGET_REPORT_JSON,
+  BALANCE_JSON_TREE,
   MONTHLY_ASSETS_JSON,
   MONTHLY_BALANCE_SHEET_JSON,
+  MONTHLY_BUDGET_REPORT_JSON,
+  MONTHLY_REPORT_JSON,
   PRINT_TRANSFERS_JSON,
-  BALANCE_FLAT_MULTI_COMMODITY,
+  REGISTER_JSON,
 } from '../fixtures/hledgerOutputs';
 
 describe('parseAmount', () => {
@@ -85,10 +84,10 @@ describe('extractFromJson', () => {
   it('parses tree balance JSON', () => {
     const result = extractFromJson(BALANCE_JSON_TREE);
     expect(result.length).toBeGreaterThan(0);
-    const assets = result.find(e => e.account === 'assets');
+    const assets = result.find((e) => e.account === 'assets');
     expect(assets).toBeDefined();
-    expect(assets!.amount).toBe(15000);
-    expect(assets!.commodity).toBe('$');
+    expect(assets?.amount).toBe(15000);
+    expect(assets?.commodity).toBe('$');
   });
 
   it('handles empty JSON', () => {
@@ -96,7 +95,12 @@ describe('extractFromJson', () => {
   });
 
   it('skips malformed entries (length < 4)', () => {
-    const malformed = JSON.stringify([[['a', 'b'], ['c', 'd', 'e', [{ acommodity: '$', aquantity: { floatingPoint: 1 } }]]]]);
+    const malformed = JSON.stringify([
+      [
+        ['a', 'b'],
+        ['c', 'd', 'e', [{ acommodity: '$', aquantity: { floatingPoint: 1 } }]],
+      ],
+    ]);
     const result = extractFromJson(malformed);
     expect(result).toHaveLength(1);
   });
@@ -106,9 +110,11 @@ describe('extractFlat', () => {
   it('parses flat balance JSON with multiple commodities', () => {
     const result = extractFlat(BALANCE_FLAT_MULTI_COMMODITY);
     expect(result.length).toBeGreaterThanOrEqual(2);
-    const checking = result.find(e => e.account === 'assets:bank:checking' && e.commodity === '$');
+    const checking = result.find(
+      (e) => e.account === 'assets:bank:checking' && e.commodity === '$',
+    );
     expect(checking).toBeDefined();
-    expect(checking!.amount).toBe(5000);
+    expect(checking?.amount).toBe(5000);
   });
 
   it('handles empty JSON', () => {
@@ -165,14 +171,14 @@ describe('extractMonthlyAssetsByGroup', () => {
   it('filters only assets:* rows', () => {
     const result = extractMonthlyAssetsByGroup(MONTHLY_ASSETS_JSON);
     expect(result.groups['bank:checking']).toBeDefined();
-    expect(result.groups['investment']).toBeDefined();
+    expect(result.groups.investment).toBeDefined();
   });
 
   it('strips assets: prefix from group names', () => {
     const result = extractMonthlyAssetsByGroup(MONTHLY_ASSETS_JSON);
     expect(result.groups['bank:checking']).toBeDefined();
     expect(result.groups['assets:bank:checking']).toBeUndefined();
-    expect(result.groups['investment']).toBeDefined();
+    expect(result.groups.investment).toBeDefined();
   });
 });
 
@@ -189,7 +195,7 @@ describe('parsePrintTransfers', () => {
   it('extracts transfer legs skipping equity:transfer', () => {
     const result = parsePrintTransfers(PRINT_TRANSFERS_JSON);
     expect(result).toHaveLength(2);
-    expect(result.every(l => l.account !== 'equity:transfer')).toBe(true);
+    expect(result.every((l) => l.account !== 'equity:transfer')).toBe(true);
   });
 
   it('returns empty for empty array', () => {
@@ -249,7 +255,9 @@ describe('groupBreakdown', () => {
 
 describe('isLeaf', () => {
   it('returns true when no other account starts with account:', () => {
-    expect(isLeaf('assets:bank:checking', ['assets:bank', 'assets:bank:checking', 'liabilities:card'])).toBe(true);
+    expect(
+      isLeaf('assets:bank:checking', ['assets:bank', 'assets:bank:checking', 'liabilities:card']),
+    ).toBe(true);
   });
 
   it('returns false when other accounts are children', () => {
@@ -259,14 +267,26 @@ describe('isLeaf', () => {
 
 describe('makeCacheKey', () => {
   it('produces same key for equivalent filter orders', () => {
-    const ctx1 = { filter: { accountPatterns: ['b', 'a'], currencies: ['EUR', 'USD'] }, period: { hledgerPeriod: '2024..2024' } };
-    const ctx2 = { filter: { accountPatterns: ['a', 'b'], currencies: ['USD', 'EUR'] }, period: { hledgerPeriod: '2024..2024' } };
+    const ctx1 = {
+      filter: { accountPatterns: ['b', 'a'], currencies: ['EUR', 'USD'] },
+      period: { hledgerPeriod: '2024..2024' },
+    };
+    const ctx2 = {
+      filter: { accountPatterns: ['a', 'b'], currencies: ['USD', 'EUR'] },
+      period: { hledgerPeriod: '2024..2024' },
+    };
     expect(makeCacheKey(ctx1)).toBe(makeCacheKey(ctx2));
   });
 
   it('produces different keys for different periods', () => {
-    const ctx1 = { filter: { accountPatterns: [], currencies: [] }, period: { hledgerPeriod: '2024..2024' } };
-    const ctx2 = { filter: { accountPatterns: [], currencies: [] }, period: { hledgerPeriod: '2025..2025' } };
+    const ctx1 = {
+      filter: { accountPatterns: [], currencies: [] },
+      period: { hledgerPeriod: '2024..2024' },
+    };
+    const ctx2 = {
+      filter: { accountPatterns: [], currencies: [] },
+      period: { hledgerPeriod: '2025..2025' },
+    };
     expect(makeCacheKey(ctx1)).not.toBe(makeCacheKey(ctx2));
   });
 });

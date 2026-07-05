@@ -1,4 +1,4 @@
-import { TabFilterState, FilterShortcut } from '../hledger/types';
+import type { FilterShortcut, TabFilterState } from '../hledger/types';
 
 export interface FilterBarCallbacks {
   onOpenAccountPicker: (anchorEl: HTMLElement) => void;
@@ -10,11 +10,16 @@ export interface FilterBarCallbacks {
 }
 
 export function chipClass(pattern: string): string {
-  if (pattern.startsWith('^income') || pattern.startsWith('income')) return 'hldg-filter-chip-income';
-  if (pattern.startsWith('^expenses') || pattern.startsWith('expenses')) return 'hldg-filter-chip-expenses';
-  if (pattern.startsWith('^assets') || pattern.startsWith('assets')) return 'hldg-filter-chip-assets';
-  if (pattern.startsWith('^liabilities') || pattern.startsWith('liabilities')) return 'hldg-filter-chip-liabilities';
-  if (pattern.startsWith('^equity') || pattern.startsWith('equity')) return 'hldg-filter-chip-equity';
+  if (pattern.startsWith('^income') || pattern.startsWith('income'))
+    return 'hldg-filter-chip-income';
+  if (pattern.startsWith('^expenses') || pattern.startsWith('expenses'))
+    return 'hldg-filter-chip-expenses';
+  if (pattern.startsWith('^assets') || pattern.startsWith('assets'))
+    return 'hldg-filter-chip-assets';
+  if (pattern.startsWith('^liabilities') || pattern.startsWith('liabilities'))
+    return 'hldg-filter-chip-liabilities';
+  if (pattern.startsWith('^equity') || pattern.startsWith('equity'))
+    return 'hldg-filter-chip-equity';
   return 'hldg-filter-chip-default';
 }
 
@@ -28,7 +33,7 @@ export function renderFilterBar(
   container: HTMLElement,
   filter: TabFilterState,
   shortcuts: FilterShortcut[],
-  cb: FilterBarCallbacks
+  cb: FilterBarCallbacks,
 ): void {
   container.empty();
   const bar = container.createDiv({ cls: 'hldg-filter-bar' });
@@ -37,7 +42,8 @@ export function renderFilterBar(
     const scRow = bar.createDiv({ cls: 'hldg-filter-shortcuts' });
     scRow.createSpan({ cls: 'hldg-filter-label', text: 'Shortcuts:' });
     for (const sc of shortcuts) {
-      scRow.createEl('button', { cls: 'hldg-filter-shortcut', text: sc.name })
+      scRow
+        .createEl('button', { cls: 'hldg-filter-shortcut', text: sc.name })
         .addEventListener('click', () => cb.onApplyShortcut(sc));
     }
   }
@@ -53,8 +59,12 @@ export function renderFilterBar(
 
   for (const pat of filter.accountPatterns) {
     const chip = row.createSpan({ cls: `hldg-filter-chip ${chipClass(pat)}`, text: pat });
-    chip.createEl('span', { cls: 'hldg-filter-chip-x', text: ' ✕' })
-      .addEventListener('click', (e) => { e.stopPropagation(); cb.onRemoveAccountPattern(pat); });
+    chip
+      .createEl('span', { cls: 'hldg-filter-chip-x', text: ' ✕' })
+      .addEventListener('click', (e) => {
+        e.stopPropagation();
+        cb.onRemoveAccountPattern(pat);
+      });
   }
 
   row.createSpan({ cls: 'hldg-filter-label', text: 'Currency:' });
@@ -66,10 +76,15 @@ export function renderFilterBar(
 
   for (const c of filter.currencies) {
     const chip = row.createSpan({ cls: `hldg-filter-chip ${currencyChipClass(c)}`, text: c });
-    chip.createEl('span', { cls: 'hldg-filter-chip-x', text: ' ✕' })
-      .addEventListener('click', (e) => { e.stopPropagation(); cb.onRemoveCurrency(c); });
+    chip
+      .createEl('span', { cls: 'hldg-filter-chip-x', text: ' ✕' })
+      .addEventListener('click', (e) => {
+        e.stopPropagation();
+        cb.onRemoveCurrency(c);
+      });
   }
 
-  row.createEl('button', { cls: 'hldg-filter-clear', text: 'Clear' })
+  row
+    .createEl('button', { cls: 'hldg-filter-clear', text: 'Clear' })
     .addEventListener('click', () => cb.onClearFilters());
 }

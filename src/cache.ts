@@ -1,5 +1,5 @@
 export class QueryCache {
-  private cache = new Map<string, Promise<any>>();
+  private cache = new Map<string, Promise<unknown>>();
   private periodKey = '';
 
   setPeriod(period: string): void {

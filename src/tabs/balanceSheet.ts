@@ -1,18 +1,18 @@
-import { DashboardContext, BalanceEntry } from '../hledger/types';
-import { HledgerClient } from '../hledger/client';
-import { buildKpiRow, buildKpiCard } from '../ui/kpi';
-import { createPaginatedTable, Column, Row } from '../ui/table';
-import { createLineChart } from '../ui/chart';
 import { applyCurrencyFilter, buildHledgerAccountArgs, shouldDropDepth } from '../filters';
 import { formatAmount, PALETTE } from '../format';
-import { extractFlat, extractBalanceTimeSeries, isLeaf } from '../hledger/parse';
+import type { HledgerClient } from '../hledger/client';
+import { extractBalanceTimeSeries, extractFlat, isLeaf } from '../hledger/parse';
+import type { BalanceEntry, DashboardContext } from '../hledger/types';
+import { createLineChart } from '../ui/chart';
+import { buildKpiCard, buildKpiRow } from '../ui/kpi';
+import { createPaginatedTable, type Row } from '../ui/table';
 
 let balanceSheetViewMode: 'summary' | 'detail' = 'detail';
 
 export async function renderBalanceSheet(
   container: HTMLElement,
   client: HledgerClient,
-  ctx: DashboardContext
+  ctx: DashboardContext,
 ): Promise<void> {
   balanceSheetViewMode = ctx.uiState?.balanceSheetMode ?? 'detail';
   container.empty();
@@ -25,15 +25,21 @@ export async function renderBalanceSheet(
     'balance',
     ...accountArgs,
     ...depthArgs,
-    '-O', 'json',
+    '-O',
+    'json',
     '--no-total',
     '--tree',
-    '-p', ctx.period.hledgerPeriod,
+    '-p',
+    ctx.period.hledgerPeriod,
     '-H',
   ];
 
   const [stdoutX, stdoutNative, stdoutPrices] = await Promise.all([
-    client.exec(ctx.settings.hledgerPath, ['-X', ctx.targetCurrency, '-V', ...baseArgs], ctx.settings.journalFile),
+    client.exec(
+      ctx.settings.hledgerPath,
+      ['-X', ctx.targetCurrency, '-V', ...baseArgs],
+      ctx.settings.journalFile,
+    ),
     client.exec(ctx.settings.hledgerPath, baseArgs, ctx.settings.journalFile),
     client.exec(ctx.settings.hledgerPath, ['prices'], ctx.settings.journalFile).catch(() => ''),
   ]);
@@ -57,44 +63,71 @@ export async function renderBalanceSheet(
   const filteredX = applyCurrencyFilter(allX, ctx.filter.currencies);
   const filteredNative = applyCurrencyFilter(allNative, ctx.filter.currencies);
 
-  const topLevelX = filteredX.filter(e => e.depth === 0);
+  const topLevelX = filteredX.filter((e) => e.depth === 0);
 
-  const assetsTotal = topLevelX.find(e => e.account.startsWith('assets'));
-  const liabilitiesTotal = topLevelX.find(e => e.account.startsWith('liabilities'));
+  const assetsTotal = topLevelX.find((e) => e.account.startsWith('assets'));
+  const liabilitiesTotal = topLevelX.find((e) => e.account.startsWith('liabilities'));
 
   const netWorth = (assetsTotal?.amount ?? 0) + (liabilitiesTotal?.amount ?? 0);
 
   if (topLevelX.length > 0) {
     const kpiRow = buildKpiRow(container);
-    buildKpiCard(kpiRow, 'Net Worth', formatAmount(netWorth, ctx.targetCurrency), 'hldg-value-positive');
-    buildKpiCard(kpiRow, 'Assets', formatAmount(assetsTotal?.amount ?? 0, ctx.targetCurrency), 'hldg-value-positive');
-    buildKpiCard(kpiRow, 'Liabilities', formatAmount(liabilitiesTotal?.amount ?? 0, ctx.targetCurrency), 'hldg-value-negative');
+    buildKpiCard(
+      kpiRow,
+      'Net Worth',
+      formatAmount(netWorth, ctx.targetCurrency),
+      'hldg-value-positive',
+    );
+    buildKpiCard(
+      kpiRow,
+      'Assets',
+      formatAmount(assetsTotal?.amount ?? 0, ctx.targetCurrency),
+      'hldg-value-positive',
+    );
+    buildKpiCard(
+      kpiRow,
+      'Liabilities',
+      formatAmount(liabilitiesTotal?.amount ?? 0, ctx.targetCurrency),
+      'hldg-value-negative',
+    );
   }
 
   // Monthly time-series line chart (multi-month only)
   const periodStart = ctx.period.startDate;
   const periodEnd = ctx.period.endDate;
-  const isMultiMonth = periodStart && periodEnd &&
-    (new Date(periodEnd).getTime() - new Date(periodStart).getTime()) > 40 * 24 * 60 * 60 * 1000;
+  const isMultiMonth =
+    periodStart &&
+    periodEnd &&
+    new Date(periodEnd).getTime() - new Date(periodStart).getTime() > 40 * 24 * 60 * 60 * 1000;
 
   if (isMultiMonth) {
     try {
-      const monthlyStdout = await client.exec(ctx.settings.hledgerPath, [
-        'balance',
-        ...accountArgs,
-        '--depth', '2',
-        '--monthly',
-        '-H',
-        '-X', ctx.targetCurrency,
-        '-V',
-        '-O', 'json',
-        '-p', ctx.period.hledgerPeriod,
-      ], ctx.settings.journalFile);
+      const monthlyStdout = await client.exec(
+        ctx.settings.hledgerPath,
+        [
+          'balance',
+          ...accountArgs,
+          '--depth',
+          '2',
+          '--monthly',
+          '-H',
+          '-X',
+          ctx.targetCurrency,
+          '-V',
+          '-O',
+          'json',
+          '-p',
+          ctx.period.hledgerPeriod,
+        ],
+        ctx.settings.journalFile,
+      );
       const monthly = extractBalanceTimeSeries(monthlyStdout);
 
       if (monthly.months.length > 1) {
-        const assetAccounts = Object.keys(monthly.accounts).filter(n => n.startsWith('assets:'));
-        const liabilityAccounts = Object.keys(monthly.accounts).filter(n => n.startsWith('liabilities:'));
+        const assetAccounts = Object.keys(monthly.accounts).filter((n) => n.startsWith('assets:'));
+        const liabilityAccounts = Object.keys(monthly.accounts).filter((n) =>
+          n.startsWith('liabilities:'),
+        );
 
         const numPeriods = monthly.months.length;
         const assetsTotalTS = new Array(numPeriods).fill(0);
@@ -190,7 +223,11 @@ export async function renderBalanceSheet(
     const knownCurrencies = new Set(ctx.settings.knownCurrencies);
     const stockAccounts = new Set<string>();
     for (const e of filteredNative) {
-      if (e.account.startsWith('assets:') && e.account !== 'assets' && !knownCurrencies.has(e.commodity)) {
+      if (
+        e.account.startsWith('assets:') &&
+        e.account !== 'assets' &&
+        !knownCurrencies.has(e.commodity)
+      ) {
         stockAccounts.add(e.account);
       }
     }
@@ -221,38 +258,66 @@ export async function renderBalanceSheet(
       }
     }
 
-    const uniqueAccounts = [...new Set(merged.map(e => e.account))];
-    let tableEntries = merged.filter(e => e.account.startsWith('assets:') || e.account.startsWith('liabilities:'));
+    const uniqueAccounts = [...new Set(merged.map((e) => e.account))];
+    let tableEntries = merged.filter(
+      (e) => e.account.startsWith('assets:') || e.account.startsWith('liabilities:'),
+    );
     if (balanceSheetViewMode === 'summary') {
-      tableEntries = tableEntries.filter(e => e.depth === 1);
+      tableEntries = tableEntries.filter((e) => e.depth === 1);
     } else {
-      tableEntries = tableEntries.filter(e => isLeaf(e.account, uniqueAccounts));
+      tableEntries = tableEntries.filter((e) => isLeaf(e.account, uniqueAccounts));
     }
 
     const assetRows: Row[] = tableEntries
-      .filter(e => e.account.startsWith('assets:'))
-      .map(e => [e.account.replace('assets:', ''), { text: formatAmount(e.amount, e.commodity), sortValue: e.amount }]);
+      .filter((e) => e.account.startsWith('assets:'))
+      .map((e) => [
+        e.account.replace('assets:', ''),
+        { text: formatAmount(e.amount, e.commodity), sortValue: e.amount },
+      ]);
 
     const liabilityRows: Row[] = tableEntries
-      .filter(e => e.account.startsWith('liabilities:'))
-      .map(e => [e.account.replace('liabilities:', ''), { text: formatAmount(e.amount, e.commodity), sortValue: e.amount }]);
+      .filter((e) => e.account.startsWith('liabilities:'))
+      .map((e) => [
+        e.account.replace('liabilities:', ''),
+        { text: formatAmount(e.amount, e.commodity), sortValue: e.amount },
+      ]);
 
     if (assetRows.length > 0 && liabilityRows.length > 0) {
       const cols = tableSection.createDiv({ cls: 'hldg-columns' });
       const left = cols.createDiv();
       left.createEl('h3', { text: 'Assets' });
-      createPaginatedTable(left, [{ label: 'Account' }, { label: 'Balance', align: 'right' }], assetRows, ctx.settings.recentTxnCount || 50);
+      createPaginatedTable(
+        left,
+        [{ label: 'Account' }, { label: 'Balance', align: 'right' }],
+        assetRows,
+        ctx.settings.recentTxnCount || 50,
+      );
       const right = cols.createDiv();
       right.createEl('h3', { text: 'Liabilities' });
-      createPaginatedTable(right, [{ label: 'Account' }, { label: 'Balance', align: 'right' }], liabilityRows, ctx.settings.recentTxnCount || 50);
+      createPaginatedTable(
+        right,
+        [{ label: 'Account' }, { label: 'Balance', align: 'right' }],
+        liabilityRows,
+        ctx.settings.recentTxnCount || 50,
+      );
     } else {
       if (assetRows.length > 0) {
         tableSection.createEl('h3', { text: 'Assets' });
-        createPaginatedTable(tableSection, [{ label: 'Account' }, { label: 'Balance', align: 'right' }], assetRows, ctx.settings.recentTxnCount || 50);
+        createPaginatedTable(
+          tableSection,
+          [{ label: 'Account' }, { label: 'Balance', align: 'right' }],
+          assetRows,
+          ctx.settings.recentTxnCount || 50,
+        );
       }
       if (liabilityRows.length > 0) {
         tableSection.createEl('h3', { text: 'Liabilities' });
-        createPaginatedTable(tableSection, [{ label: 'Account' }, { label: 'Balance', align: 'right' }], liabilityRows, ctx.settings.recentTxnCount || 50);
+        createPaginatedTable(
+          tableSection,
+          [{ label: 'Account' }, { label: 'Balance', align: 'right' }],
+          liabilityRows,
+          ctx.settings.recentTxnCount || 50,
+        );
       }
     }
   }
