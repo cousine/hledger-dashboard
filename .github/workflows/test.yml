@@ -36,3 +36,22 @@ jobs:
       - run: pnpm run test:run
 
       - run: pnpm run test:coverage
+
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.0
+      - uses: pnpm/action-setup@v6.0.9
+        with:
+          version: 11.10.0
+      - uses: actions/setup-node@v6.4.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Install hledger 1.52.1
+        run: |
+          curl -fL https://github.com/simonmichael/hledger/releases/download/1.52.1/hledger-linux-x64.tar.gz \
+            | sudo tar -xz -C /usr/local/bin hledger
+          hledger --version
+      - run: RUN_INTEGRATION=1 pnpm run test:run
