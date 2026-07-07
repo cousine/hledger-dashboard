@@ -19,7 +19,13 @@ export class HledgerClient {
     const pathKey = Object.keys(process.env).find((k) => k.toLowerCase() === 'path') || 'PATH';
     return {
       ...process.env,
-      LC_ALL: 'C',
+      LC_COLLATE: 'C',
+      LC_CTYPE: 'C.UTF-8',
+      LC_MESSAGES: 'C',
+      LC_MONETARY: 'C',
+      LC_NUMERIC: 'C',
+      LC_TIME: 'C',
+      LANG: 'C.UTF-8',
       [pathKey]: [...extraPaths, process.env[pathKey]].filter(Boolean).join(sep),
     };
   }

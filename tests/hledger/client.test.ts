@@ -118,6 +118,23 @@ describe('HledgerClient', () => {
     });
   });
 
+  describe('exec env locale', () => {
+    it('does not force ASCII via LC_ALL=C (regression: hGetContents decode error)', async () => {
+      mockExecFile.mockImplementation(makeSuccess('ok'));
+      await client.exec('hledger', ['accounts'], 'j.journal');
+      const opts = mockExecFile.mock.calls[0][2] as {
+        env: Record<string, string | undefined>;
+      };
+      const env = opts.env;
+      // LC_ALL overrides every other LC_* category; setting it to 'C'
+      // makes the Haskell runtime decode files as ASCII, breaking journals
+      // with accented chars / € / £ / etc. (hGetContents decode error).
+      expect(env.LC_ALL).toBeUndefined();
+      // File I/O must decode as UTF-8 so non-ASCII journals don't fail.
+      expect(env.LC_CTYPE).toMatch(/UTF-?8/i);
+    });
+  });
+
   describe('testConnection', () => {
     it('resolves with version string', async () => {
       mockExecFile.mockImplementation(makeSuccess('hledger 1.32'));

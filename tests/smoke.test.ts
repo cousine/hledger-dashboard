@@ -1,10 +1,14 @@
-import { execFile } from 'node:child_process';
+import { execFile, execFileSync } from 'node:child_process';
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { HledgerClient } from '../src/hledger/client';
 import { extractFromJson, extractMonthlyData, extractRegister } from '../src/hledger/parse';
 import { getBalances } from '../src/hledger/queries';
 
 const runIntegration = !!process.env.RUN_INTEGRATION;
+let exhibitsAsciiLocaleBug = false;
 
 describe.skipIf(!runIntegration)('hledger binary smoke', () => {
   const vaultRoot = process.cwd();
@@ -24,6 +28,22 @@ describe.skipIf(!runIntegration)('hledger binary smoke', () => {
       throw new Error(
         `hledger not available — set RUN_INTEGRATION=1 only if hledger 1.52+ is installed: ${e}`,
       );
+    }
+
+    // Probe whether the platform's C locale enforces strict ASCII decoding
+    // (glibc/Linux → bug manifests; Darwin → GHC forces UTF-8 regardless)
+    const probeDir = mkdtempSync(join(tmpdir(), 'hledger-probe-'));
+    const probeJournal = join(probeDir, 'probe.journal');
+    writeFileSync(probeJournal, '2024-01-01 Café\n    expenses:x      €1\n    assets:y\n', 'utf8');
+    try {
+      execFileSync('hledger', ['-f', probeJournal, 'accounts'], {
+        env: { ...process.env, LC_ALL: 'C' },
+        stdio: ['ignore', 'ignore', 'ignore'],
+        timeout: 10000,
+      });
+      exhibitsAsciiLocaleBug = false;
+    } catch {
+      exhibitsAsciiLocaleBug = true;
     }
   });
 
@@ -82,6 +102,23 @@ describe.skipIf(!runIntegration)('hledger binary smoke', () => {
     const entries = extractRegister(stdout);
     expect(entries.length).toBeGreaterThan(0);
     expect(entries[0].date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it('reads a journal containing non-ASCII bytes (regression: hGetContents decode error)', async (ctx) => {
+    if (!exhibitsAsciiLocaleBug) {
+      ctx.skip();
+    }
+    const dir = mkdtempSync(join(tmpdir(), 'hledger-utf8-'));
+    const journalPath = join(dir, 'utf8.journal');
+    writeFileSync(
+      journalPath,
+      '2024-01-01 Café lunch\n    expenses:food      €5\n    assets:cash\n',
+      'utf8',
+    );
+    const tmpClient = new HledgerClient(dir);
+    await expect(tmpClient.exec('hledger', ['accounts'], 'utf8.journal')).resolves.toContain(
+      'expenses:food',
+    );
   });
 
   it('extractMonthlyData parses monthly report', async () => {
