@@ -1,4 +1,7 @@
 import { execFile } from 'node:child_process';
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { HledgerClient } from '../src/hledger/client';
 import { extractFromJson, extractMonthlyData, extractRegister } from '../src/hledger/parse';
@@ -82,6 +85,20 @@ describe.skipIf(!runIntegration)('hledger binary smoke', () => {
     const entries = extractRegister(stdout);
     expect(entries.length).toBeGreaterThan(0);
     expect(entries[0].date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it('reads a journal containing non-ASCII bytes (regression: hGetContents decode error)', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'hledger-utf8-'));
+    const journalPath = join(dir, 'utf8.journal');
+    writeFileSync(
+      journalPath,
+      '2024-01-01 Café lunch\n    expenses:food      €5\n    assets:cash\n',
+      'utf8',
+    );
+    const tmpClient = new HledgerClient(dir);
+    await expect(tmpClient.exec('hledger', ['accounts'], 'utf8.journal')).resolves.toContain(
+      'expenses:food',
+    );
   });
 
   it('extractMonthlyData parses monthly report', async () => {
